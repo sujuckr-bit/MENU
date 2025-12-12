@@ -107,6 +107,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return n.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
     }
 
+    function clientIsAdmin() {
+        return sessionStorage.getItem('isAdmin') === '1';
+    }
+
     function getOrders() {
         try {
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
@@ -137,6 +141,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const cartTotalEl = document.getElementById('cartTotal');
         const tableSelect = document.getElementById('tableNumber');
         const orderForm = document.getElementById('orderForm');
+        const buyerInput = document.getElementById('buyerName');
+
+        // If someone requested to edit an existing order, only allow it for admin
+        const editingJson = localStorage.getItem('editingOrder');
+        if (editingJson) {
+            try {
+                const editingOrder = JSON.parse(editingJson);
+                if (!clientIsAdmin()) {
+                    alert('Hanya admin yang dapat mengedit pesanan. Silakan login sebagai admin.');
+                    localStorage.removeItem('editingOrder');
+                } else {
+                    editingId = editingOrder.id || null;
+                    cart = (editingOrder.items || []).map(it => ({ category: it.category, itemName: it.itemName, price: it.price, quantity: it.quantity, subtotal: it.subtotal }));
+                    if (buyerInput) buyerInput.value = editingOrder.buyerName || '';
+                    if (tableSelect) tableSelect.value = editingOrder.tableNumber || '';
+                    updateCartDisplay();
+                    if (submitBtn) submitBtn.textContent = 'Simpan Perubahan';
+                    localStorage.removeItem('editingOrder');
+                }
+            } catch (err) {
+                console.error('Invalid editingOrder data', err);
+                localStorage.removeItem('editingOrder');
+            }
+        }
 
         function populateItemsForCategory(cat) {
             if (!itemSelect) return;
@@ -273,8 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (orderForm) {
             orderForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                const buyerInput = document.getElementById('buyerName');
-                const buyerName = buyerInput ? buyerInput.value.trim() : '';
+            const buyerName = buyerInput ? buyerInput.value.trim() : '';
                 const tableNumber = tableSelect ? (tableSelect.value || '') : '';
 
                 if (!buyerName) {
@@ -294,13 +321,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 try {
                     const orders = getOrders();
-                    const id = Date.now().toString();
                     const clonedItems = cart.map(it => ({ category: it.category, itemName: it.itemName, price: it.price, quantity: it.quantity, subtotal: it.subtotal }));
                     const total = clonedItems.reduce((s, it) => s + it.subtotal, 0);
-                    orders.push({ id, buyerName, tableNumber, items: clonedItems, total });
-                    saveOrders(orders);
 
-                    alert('✅ Pesanan berhasil disimpan!');
+                    if (editingId) {
+                        // Update existing order (admin only - also validated earlier)
+                        const idx = orders.findIndex(o => o.id === editingId);
+                        if (idx !== -1) {
+                            const prevCompleted = orders[idx].completed || false;
+                            orders[idx] = { id: editingId, buyerName, tableNumber, items: clonedItems, total, completed: prevCompleted };
+                            saveOrders(orders);
+                            alert('✅ Perubahan pesanan berhasil disimpan!');
+                        } else {
+                            alert('❌ Pesanan yang diedit tidak ditemukan.');
+                        }
+                        editingId = null;
+                        if (submitBtn) submitBtn.textContent = initialSubmitText;
+                    } else {
+                        const id = Date.now().toString();
+                        orders.push({ id, buyerName, tableNumber, items: clonedItems, total, completed: false });
+                        saveOrders(orders);
+                        alert('✅ Pesanan berhasil disimpan!');
+                    }
+
                     orderForm.reset();
                     cart = [];
                     updateCartDisplay();
@@ -327,14 +370,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isListPage) {
         const orderList = document.getElementById('orderList');
         const noOrdersMsg = document.getElementById('noOrdersMsg');
+        const orderTable = document.getElementById('orderTable');
         const exportBtn = document.getElementById('exportBtn');
         const importBtn = document.getElementById('importBtn');
         const importFile = document.getElementById('importFile');
-
         function loadOrders() {
             const orders = getOrders();
             if (!orderList) return;
             orderList.innerHTML = '';
+
+            const isAdmin = clientIsAdmin();
+            if (!isAdmin) {
+                if (orderTable) orderTable.style.display = 'none';
+                if (noOrdersMsg) {
+                    noOrdersMsg.style.display = 'block';
+                    noOrdersMsg.innerHTML = 'Akses terbatas: hanya admin dapat melihat daftar pesanan. <a href="admin.html">Login sebagai admin</a>';
+                }
+                if (exportBtn) exportBtn.disabled = true;
+                if (importBtn) importBtn.disabled = true;
+                return;
+            }
+
+            if (orderTable) orderTable.style.display = '';
+            if (exportBtn) exportBtn.disabled = false;
+            if (importBtn) importBtn.disabled = false;
 
             if (orders.length === 0) {
                 if (noOrdersMsg) noOrdersMsg.style.display = 'block';
@@ -342,9 +401,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (noOrdersMsg) noOrdersMsg.style.display = 'none';
 
+            const listIsAdmin = true; // we're already confirmed admin
             orders.forEach(order => {
                 if (!order.items || !Array.isArray(order.items) || order.items.length === 0) return;
                 const row = document.createElement('tr');
+
+                if (order.completed) {
+                    row.classList.add('table-success');
+                }
 
                 const tdName = document.createElement('td');
                 tdName.textContent = order.buyerName || '-';
@@ -371,20 +435,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.appendChild(tdTotal);
 
                 const tdActions = document.createElement('td');
+                if (listIsAdmin) {
+                    if (!order.completed) {
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'edit-btn';
+                        editBtn.type = 'button';
+                        editBtn.textContent = 'Edit';
+                        editBtn.addEventListener('click', () => editOrder(order.id));
+                        tdActions.appendChild(editBtn);
 
-                const editBtn = document.createElement('button');
-                editBtn.className = 'edit-btn';
-                editBtn.type = 'button';
-                editBtn.textContent = 'Edit';
-                editBtn.addEventListener('click', () => editOrder(order.id));
-                tdActions.appendChild(editBtn);
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.type = 'button';
+                        deleteBtn.textContent = 'Hapus';
+                        deleteBtn.addEventListener('click', () => deleteOrder(order.id));
+                        tdActions.appendChild(deleteBtn);
 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.type = 'button';
-                deleteBtn.textContent = 'Hapus';
-                deleteBtn.addEventListener('click', () => deleteOrder(order.id));
-                tdActions.appendChild(deleteBtn);
+                        const completeBtn = document.createElement('button');
+                        completeBtn.className = 'complete-btn';
+                        completeBtn.type = 'button';
+                        completeBtn.textContent = 'Selesai';
+                        completeBtn.addEventListener('click', () => completeOrder(order.id));
+                        tdActions.appendChild(completeBtn);
+                    } else {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-success';
+                        badge.textContent = 'Selesai';
+                        tdActions.appendChild(badge);
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.type = 'button';
+                        deleteBtn.textContent = 'Hapus';
+                        deleteBtn.addEventListener('click', () => deleteOrder(order.id));
+                        tdActions.appendChild(deleteBtn);
+                    }
+                } else {
+                    tdActions.textContent = '—';
+                }
 
                 row.appendChild(tdActions);
                 orderList.appendChild(row);
@@ -392,6 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function deleteOrder(id) {
+            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat menghapus pesanan.'); return; }
             if (!confirm('Hapus pesanan ini?')) return;
             const orders = getOrders().filter(order => order.id !== id);
             saveOrders(orders);
@@ -399,6 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function editOrder(id) {
+            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat mengedit pesanan.'); return; }
             const orders = getOrders();
             const order = orders.find(o => o.id === id);
             if (!order) return;
@@ -406,6 +496,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Redirect ke halaman pesan dengan data order di localStorage
             localStorage.setItem('editingOrder', JSON.stringify(order));
             window.location.href = 'pesan.html';
+        }
+
+        function completeOrder(id) {
+            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat menandai selesai.'); return; }
+            if (!confirm('Tandai pesanan ini sebagai selesai?')) return;
+            const orders = getOrders();
+            const idx = orders.findIndex(o => o.id === id);
+            if (idx === -1) { alert('Pesanan tidak ditemukan.'); return; }
+            orders[idx].completed = true;
+            saveOrders(orders);
+            loadOrders();
         }
 
         // EXPORT TO EXCEL
