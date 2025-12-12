@@ -1,3 +1,13 @@
+const path = require('path');
+
+// Added static file serving
+app.use(express.static(path.join(__dirname, '..')));
+
+// Modified root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     // Tunggu XLSX library ter-load
     function waitForXLSX(callback, attempt = 0) {
@@ -279,7 +289,11 @@ document.addEventListener('DOMContentLoaded', function() {
             itemSelect.innerHTML = '<option value="">Pilih item</option>';
             if (priceDisplay) priceDisplay.textContent = '-';
             if (totalDisplay) totalDisplay.textContent = '-';
-            if (!cat || !menus[cat]) return;
+            if (!cat || !menus[cat]) {
+                console.warn('[POPULATE] Category not found or empty:', cat, 'Available:', Object.keys(menus));
+                return;
+            }
+            console.log('[POPULATE] Populating items for category:', cat, 'Count:', menus[cat].length);
             const q = String(filter || '').toLowerCase();
             let added = 0;
             menus[cat].forEach((it, idx) => {
@@ -294,6 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 itemSelect.appendChild(opt);
                 added++;
             });
+            console.log('[POPULATE] Items added to dropdown:', added);
             if (added === 0) {
                 const none = document.createElement('option');
                 none.value = '';
@@ -678,8 +693,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Inisialisasi
         if (categorySelect) {
+            console.log('[INIT] Initializing category select. Available menus:', Object.keys(menus));
             categorySelect.value = 'Minum';
             populateItemsForCategory('Minum');
+            console.log('[INIT] Category initialized to Minum');
         }
     }
 
