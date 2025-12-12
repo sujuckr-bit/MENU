@@ -507,6 +507,28 @@ th {
 ::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #0b5ed7; }
 
+/* Footer Styling */
+footer {
+    background-color: #1a1a1a !important;
+}
+
+footer h5 {
+    color: white !important;
+}
+
+footer p {
+    color: #aaa !important;
+}
+
+footer a {
+    color: #aaa !important;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: white !important;
+}
+
 /* Search Results Styling */
 #itemSearchContainer {
     position: relative;
