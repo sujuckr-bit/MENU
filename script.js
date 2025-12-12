@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } catch (e) { console.error('Realtime order_updated handler error', e); }
             });
         }
+    }
 
-    });
     // Deteksi halaman mana yang sedang aktif
     const isOrderPage = document.getElementById('orderForm') !== null;
     const isListPage = document.getElementById('orderList') !== null;
@@ -1126,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const accessDeniedMsg = document.getElementById('accessDeniedMsg');
         
         // Check admin status and show/hide content
-        if (isAdmin()) {
+        if (clientIsAdmin()) {
             if (adminContentContainer) adminContentContainer.style.display = 'block';
             if (accessDeniedMsg) accessDeniedMsg.style.display = 'none';
         } else {
@@ -1135,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Rest of admin handlers
-        if (isAdmin()) {
+        if (clientIsAdmin()) {
             const changePasswordForm = document.getElementById('changePasswordForm');
             const logoutBtn = document.getElementById('logoutAdminBtn');
             const adminSettingsCard = document.getElementById('adminSettingsCard');
