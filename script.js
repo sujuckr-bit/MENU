@@ -148,8 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
             for (const k in parsed) {
                 menus[k] = parsed[k];
             }
+            console.log('[MENUS] Loaded from localStorage:', Object.keys(menus).map(k => k + '(' + menus[k].length + ')').join(', '));
         } else {
             localStorage.setItem('siteMenus', JSON.stringify(menus));
+            console.log('[MENUS] Saved defaults to localStorage:', Object.keys(menus).map(k => k + '(' + menus[k].length + ')').join(', '));
         }
     } catch (e) {
         console.error('Gagal memuat atau menyimpan siteMenus:', e);
