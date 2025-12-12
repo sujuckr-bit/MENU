@@ -5,6 +5,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const http = require('http');
 const WebSocket = require('ws');
+const path = require('path');
 const db = require('./db');
 
 // WebSocket clients
@@ -24,9 +25,12 @@ async function main() {
   app.use(bodyParser.json());
   app.use(session({ secret: 'change-this-secret', resave: false, saveUninitialized: false }));
 
+  // Serve static files from parent directory
+  app.use(express.static(path.join(__dirname, '..')));
+
   // Root route
   app.get('/', (req, res) => {
-    res.json({ message: 'BAZAR HmI API Server', version: '0.1.0' });
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
   });
 
   // Helper to broadcast updates to all connected WebSocket clients
