@@ -112,6 +112,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return sessionStorage.getItem('isAdmin') === '1';
     }
 
+    // Hide "Daftar Pesanan" nav links for non-admin users
+    (function hideDaftarLinksIfNotAdmin() {
+        try {
+            const isAdmin = clientIsAdmin();
+            const selector = 'a[href="daftar.html"], a[href="./daftar.html"], a[href="/daftar.html"]';
+            document.querySelectorAll(selector).forEach(a => {
+                if (!isAdmin) a.style.display = 'none';
+            });
+        } catch (e) {
+            console.error('Error hiding daftar links:', e);
+        }
+    })();
+
     function getOrders() {
         try {
             const orders = JSON.parse(localStorage.getItem('orders')) || [];

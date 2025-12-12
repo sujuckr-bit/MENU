@@ -9,14 +9,13 @@
     <link href="assets/vendor/aos/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
+    <link rel="icon" href="assets/img/favicon-16.png" sizes="16x16">
+    <link rel="apple-touch-icon" href="assets/img/favicon-32.png">
 </head>
 <body>
-    <script>
-        // Redirect non-admin users away from this page
-        if (sessionStorage.getItem('isAdmin') !== '1') {
-            window.location.href = 'index.html';
-        }
-    </script>
+    <!-- Removed immediate redirect so non-admins can login via modal -->
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
         <div class="container">
@@ -250,7 +249,7 @@
                         modal.hide();
                         location.reload();
                     } else {
-                        alert('Password salah atau ADMIN_HASH belum diset.');
+                        alert('Password salah.');
                     }
                 });
             }
