@@ -9,8 +9,48 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('XLSX library gagal ter-load');
             alert('❌ Library Excel gagal ter-load. Refresh halaman.');
         }
-    }
 
+        // Realtime handlers (if realtime client loaded)
+        if (typeof realtime !== 'undefined' && realtime) {
+            realtime.on('connected', () => console.log('Realtime connected'));
+
+            realtime.on('menus_updated', (menusData) => {
+                try {
+                    if (menusData && typeof menusData === 'object') {
+                        Object.keys(menusData).forEach(k => { menus[k] = menusData[k]; });
+                        saveMenusToStorage();
+                    }
+                    console.log('Menus updated via realtime');
+                } catch (e) { console.error('Realtime menus_updated handler error', e); }
+            });
+
+            realtime.on('order_created', (data) => {
+                try {
+                    const order = data || {};
+                    if (!order.id) order.id = Date.now().toString();
+                    const orders = getOrders();
+                    orders.push(order);
+                    saveOrders(orders);
+                    if (typeof loadOrders === 'function') loadOrders();
+                    if (typeof displayMyOrders === 'function') displayMyOrders();
+                    console.log('Realtime: new order', order.id);
+                } catch (e) { console.error('Realtime order_created handler error', e); }
+            });
+
+            realtime.on('order_updated', (order) => {
+                try {
+                    if (!order || !order.id) return;
+                    const orders = getOrders();
+                    const idx = orders.findIndex(o => o.id == order.id);
+                    if (idx !== -1) { orders[idx] = order; saveOrders(orders); }
+                    if (typeof loadOrders === 'function') loadOrders();
+                    if (typeof displayMyOrders === 'function') displayMyOrders();
+                    console.log('Realtime: order updated', order.id);
+                } catch (e) { console.error('Realtime order_updated handler error', e); }
+            });
+        }
+
+    });
     // Deteksi halaman mana yang sedang aktif
     const isOrderPage = document.getElementById('orderForm') !== null;
     const isListPage = document.getElementById('orderList') !== null;
@@ -115,6 +155,21 @@ document.addEventListener('DOMContentLoaded', function() {
     window.saveMenusToStorage = saveMenusToStorage;
     window.menus = menus; // expose for debugging/admin pages
 
+    // Try to load menus from API on startup
+    (async function loadMenusFromAPI() {
+        try {
+            const apiMenus = await fetchMenusFromAPI();
+            if (apiMenus && Object.keys(apiMenus).length > 0) {
+                // Merge API menus with defaults (API takes priority)
+                Object.assign(menus, apiMenus);
+                saveMenusToStorage();
+                console.log('Menus loaded from API');
+            }
+        } catch (e) {
+            console.log('Failed to fetch menus from API (this is ok, will use defaults):', e.message);
+        }
+    })();
+
     // Helper functions
     function formatCurrency(n) {
         return n.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' });
@@ -138,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })();
 
     function getOrders() {
+        // Orders should come from API if available, fallback to localStorage
         try {
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             return orders.filter(o => o && o.items && Array.isArray(o.items));
@@ -153,6 +209,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {
             console.error('Gagal simpan orders:', e);
         }
+    }
+
+    // Save order to API as well
+    async function saveOrderViaAPI(orderData) {
+        try {
+            const id = await createOrderViaAPI(orderData);
+            if (id) {
+                console.log('Order saved to API with ID:', id);
+                return id;
+            }
+        } catch (e) {
+            console.error('Failed to save order to API:', e);
+        }
+        return null;
     }
 
     // Halaman Pesan (pesan.html)
@@ -517,7 +587,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Form submission
         if (orderForm) {
-            orderForm.addEventListener('submit', function(e) {
+            orderForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
             const buyerName = buyerInput ? buyerInput.value.trim() : '';
                 const tableNumber = tableSelect ? (tableSelect.value || '') : '';
@@ -557,8 +627,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (submitBtn) submitBtn.textContent = initialSubmitText;
                     } else {
                         const id = Date.now().toString();
-                        orders.push({ id, buyerName, tableNumber, items: clonedItems, total, completed: false });
+                        const orderData = { buyerName, tableNumber, items: clonedItems, total, completed: false };
+                        orders.push({ id, ...orderData });
                         saveOrders(orders);
+                        
+                        // Also save to API
+                        await saveOrderViaAPI(orderData);
+                        
                         alert('✅ Pesanan berhasil disimpan!');
                     }
 

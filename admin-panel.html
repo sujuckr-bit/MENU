@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Menu Manager - BAZAR HmI</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <style>
+        .admin-container { max-width: 1200px; margin: 0 auto; }
+        .menu-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .menu-item { padding: 12px; border: 1px solid #e9ecef; border-radius: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .menu-item-info { flex: 1; }
+        .menu-item-name { font-weight: 600; color: #1a3a52; }
+        .menu-item-price { color: #17a2b8; font-weight: bold; }
+        .btn-group-sm { gap: 5px; }
+        .badge-category { background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; font-size: 12px; padding: 6px 12px; border-radius: 20px; }
+        .add-form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .status-indicator { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+        .status-connected { background: #28a745; }
+        .status-disconnected { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
+                <img src="logo.png" alt="HmI Logo" height="35" class="me-2">
+                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <div id="statusIndicator" style="font-size: 12px;">
+                    <span class="status-indicator status-disconnected"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+                <a href="admin-login.html" class="btn btn-sm btn-outline-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container admin-container py-5">
+        <div class="mb-5">
+            <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52;">⚙️ Admin Panel - Menu Manager</h1>
+            <p class="lead text-muted">Kelola menu makanan dan minuman secara real-time</p>
+        </div>
+
+        <!-- Add New Menu Item Form -->
+        <div class="card shadow-lg border-0 mb-4" style="border-radius: 12px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0">➕ Tambah Menu Item Baru</h5>
+            </div>
+            <div class="card-body">
+                <form id="addMenuForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="addCategory" class="form-label fw-bold">Kategori:</label>
+                        <select id="addCategory" class="form-select" required>
+                            <option value="">Pilih kategori</option>
+                            <option value="Minum">🥤 Minum</option>
+                            <option value="Makan">🍽️ Makan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="addName" class="form-label fw-bold">Nama Item:</label>
+                        <input type="text" id="addName" class="form-control" placeholder="e.g., Kopi Pandan" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="addPrice" class="form-label fw-bold">Harga (IDR):</label>
+                        <input type="number" id="addPrice" class="form-control" placeholder="28000" min="0" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" style="background: #17a2b8; border: none;">Tambah</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Menu Categories -->
+        <div id="menuContainer"></div>
+    </div>
+
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
+    <script src="assets/js/realtime.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Check admin
+        if (!isAdmin()) {
+            alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
+            window.location.href = 'admin-login.html';
+        }
+
+        let menus = {};
+
+        // Load menus
+        async function loadMenus() {
+            const result = await apiCall('menus');
+            if (result.ok) {
+                menus = result.data || {};
+                renderMenus();
+            }
+        }
+
+        // Render all menus
+        function renderMenus() {
+            const container = document.getElementById('menuContainer');
+            container.innerHTML = '';
+
+            Object.entries(menus).forEach(([category, items]) => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'menu-card';
+                categoryCard.innerHTML = `
+                    <div class="d-flex align-items-center mb-4">
+                        <h4 class="mb-0" style="color: #1a3a52;">
+                            ${category === 'Minum' ? '🥤' : '🍽️'} ${category}
+                        </h4>
+                        <span class="badge bg-light text-dark ms-3">${items.length} item(s)</span>
+                    </div>
+                    <div id="items-${category}"></div>
+                `;
+                container.appendChild(categoryCard);
+
+                const itemsContainer = document.getElementById(`items-${category}`);
+                items.forEach((item, idx) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'menu-item';
+                    itemEl.innerHTML = `
+                        <div class="menu-item-info">
+                            <div class="menu-item-name">${item.name}</div>
+                            <div class="menu-item-price">Rp ${Number(item.price).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-warning btn-sm" onclick="editItem('${category}', ${idx})">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('${category}', ${idx})">
+                                <i class="bi bi-trash"></i> Hapus
+                            </button>
+                        </div>
+                    `;
+                    itemsContainer.appendChild(itemEl);
+                });
+            });
+        }
+
+        // Add menu item
+        document.getElementById('addMenuForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const category = document.getElementById('addCategory').value;
+            const name = document.getElementById('addName').value;
+            const price = document.getElementById('addPrice').value;
+
+            if (!category || !name || !price) {
+                alert('❌ Lengkapi semua field');
+                return;
+            }
+
+            const result = await apiCall('menus', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...menus,
+                    [category]: [...(menus[category] || []), { name, price: Number(price) }]
+                })
+            });
+
+            if (result.ok) {
+                alert('✅ Menu item berhasil ditambahkan');
+                document.getElementById('addMenuForm').reset();
+                loadMenus();
+            } else {
+                alert('❌ Gagal menambahkan menu item');
+            }
+        });
+
+        // Edit item
+        async function editItem(category, idx) {
+            const item = menus[category][idx];
+            const newName = prompt('Nama item:', item.name);
+            if (!newName) return;
+
+            const newPrice = prompt('Harga (IDR):', item.price);
+            if (!newPrice) return;
+
+            menus[category][idx] = { name: newName, price: Number(newPrice) };
+            const result = await apiCall('menus', {
+                method: 'POST',
+                body: JSON.stringify(menus)
+            });
+
+            if (result.ok) {
+                alert('✅ Menu item berhasil diubah');
+                loadMenus();
+            } else {
+                alert('❌ Gagal mengubah menu item');
+            }
+        }
+
+        // Delete item
+        async function deleteItem(category, idx) {
+            if (!confirm(`Hapus "${menus[category][idx].name}"?`)) return;
+
+            menus[category].splice(idx, 1);
+            const result = await apiCall('menus', {
+                method: 'POST',
+                body: JSON.stringify(menus)
+            });
+
+            if (result.ok) {
+                alert('✅ Menu item berhasil dihapus');
+                loadMenus();
+            } else {
+                alert('❌ Gagal menghapus menu item');
+            }
+        }
+
+        // Real-time updates
+        realtime.on('connected', () => {
+            document.getElementById('statusIndicator').querySelector('.status-indicator').className = 'status-indicator status-connected';
+            document.getElementById('statusText').textContent = 'Connected';
+        });
+
+        realtime.on('disconnected', () => {
+            document.getElementById('statusIndicator').querySelector('.status-indicator').className = 'status-indicator status-disconnected';
+            document.getElementById('statusText').textContent = 'Disconnected';
+        });
+
+        realtime.on('menus_updated', (data) => {
+            menus = data;
+            renderMenus();
+            console.log('✅ Menus updated by another admin');
+        });
+
+        // Load on start
+        loadMenus();
+    </script>
+</body>
+</html>

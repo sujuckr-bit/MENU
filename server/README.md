@@ -1,3 +1,20 @@
+Server database and migration
+
+Instructions:
+
+- Install dependencies from `server` folder:
+
+  npm install
+
+ - Run migration to import existing JSON data into the new JSON-backed DB:
+
+  npm run migrate
+
+ - Start the server:
+
+  npm start
+
+This project uses a simple JSON-backed DB at `server/data/database.json` (no native build required).
 # BAZAR HmI - Minimal Server
 
 This is a minimal Node/Express server to provide simple APIs for authentication, menus, and orders.

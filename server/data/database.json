@@ -1,0 +1,211 @@
+{
+  "users": {
+    "admin": {
+      "passwordHash": "$2a$10$b6Rr7SiVKJ4.oIRSVWU/SeshcL/tpn8E28Ax3KV3NLWq7xnOcfwBu"
+    }
+  },
+  "menus": {},
+  "orders": [
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558603321,
+      "id": 1
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558605615,
+      "id": 2
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558606457,
+      "id": 3
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558607479,
+      "id": 4
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558608215,
+      "id": 5
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558608769,
+      "id": 6
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558609229,
+      "id": 7
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558609571,
+      "id": 8
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558609939,
+      "id": 9
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765558610333,
+      "id": 10
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765564915516,
+      "id": 11
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765564916138,
+      "id": 12
+    },
+    {
+      "customerName": "Test User",
+      "items": [
+        {
+          "name": "Makan",
+          "quantity": 1,
+          "price": 10000
+        }
+      ],
+      "totalPrice": 10000,
+      "createdAt": 1765564917101,
+      "id": 13
+    },
+    {
+      "buyerName": "RT Test",
+      "total": 18000,
+      "items": [
+        {
+          "itemName": "Air Mineral",
+          "price": 18000,
+          "category": "Minum",
+          "subtotal": 18000,
+          "quantity": 1
+        }
+      ],
+      "tableNumber": "1",
+      "createdAt": 1765565066118,
+      "id": 14
+    },
+    {
+      "buyerName": "RT Test 2",
+      "total": 15000,
+      "items": [
+        {
+          "itemName": "Nasi Putih",
+          "price": 15000,
+          "category": "Makan",
+          "subtotal": 15000,
+          "quantity": 1
+        }
+      ],
+      "tableNumber": "2",
+      "createdAt": 1765565110288,
+      "id": 15
+    }
+  ]
+}

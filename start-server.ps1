@@ -36,7 +36,7 @@ try {
         
         # Cek apakah http-server sudah install
         $httpServer = npm list -g http-server 2>&1
-        if ($httpServer -like '*empty*' -or $httpServer -like '*not installed*') {
+        if ($httpServer -like "*empty*" -or $httpServer -like "*not installed*") {
             Write-Host "`n📦 Menginstall http-server..." -ForegroundColor Yellow
             npm install -g http-server
         }
