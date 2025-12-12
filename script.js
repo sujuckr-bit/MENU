@@ -166,20 +166,95 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        function populateItemsForCategory(cat) {
+        function populateItemsForCategory(cat, filter = '') {
             if (!itemSelect) return;
             itemSelect.innerHTML = '<option value="">Pilih item</option>';
             if (priceDisplay) priceDisplay.textContent = '-';
             if (totalDisplay) totalDisplay.textContent = '-';
             if (!cat || !menus[cat]) return;
+            const q = String(filter || '').toLowerCase();
+            let added = 0;
             menus[cat].forEach((it, idx) => {
+                const label = `${it.name} — ${formatCurrency(it.price)}`;
+                const match = !q || it.name.toLowerCase().includes(q) || String(it.price).includes(q) || label.toLowerCase().includes(q);
+                if (!match) return;
                 const opt = document.createElement('option');
                 opt.value = String(idx);
-                opt.textContent = `${it.name} — ${formatCurrency(it.price)}`;
+                opt.textContent = label;
                 itemSelect.appendChild(opt);
+                added++;
             });
+            if (added === 0) {
+                const none = document.createElement('option');
+                none.value = '';
+                none.textContent = 'Tidak ada item yang cocok';
+                none.disabled = true;
+                itemSelect.appendChild(none);
+            }
             itemSelect.selectedIndex = 0;
             updatePriceAndTotal();
+        }
+
+        function renderSearchResults(cat, filter = '') {
+            const searchResults = document.getElementById('searchResults');
+            if (!searchResults) return;
+            searchResults.innerHTML = '';
+            const q = String(filter || '').toLowerCase();
+
+            if (!q || !cat || !menus[cat]) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const results = [];
+            menus[cat].forEach((it, idx) => {
+                const label = `${it.name} — ${formatCurrency(it.price)}`;
+                const match = it.name.toLowerCase().includes(q) || String(it.price).includes(q) || label.toLowerCase().includes(q);
+                if (match) results.push({ idx, name: it.name, price: it.price, label });
+            });
+
+            if (results.length === 0) {
+                const none = document.createElement('div');
+                none.className = 'list-group-item text-muted text-center';
+                none.textContent = 'Tidak ada hasil';
+                searchResults.appendChild(none);
+                searchResults.style.display = 'block';
+                return;
+            }
+
+            results.forEach((res, i) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.dataset.index = String(i);
+                item.dataset.menuIndex = String(res.idx);
+                
+                // Highlight matching text
+                const text = res.label;
+                const highlighted = text.replace(
+                    new RegExp(`(${q})`, 'gi'),
+                    '<mark style="background-color:#ffeb3b; font-weight:bold;">$1</mark>'
+                );
+                
+                item.innerHTML = highlighted;
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    selectSearchResult(res.idx);
+                });
+                searchResults.appendChild(item);
+            });
+            searchResults.style.display = 'block';
+            searchResults.dataset.selectedIndex = '-1'; // Track selected index
+        }
+
+        function selectSearchResult(menuIdx) {
+            if (itemSelect) {
+                itemSelect.value = String(menuIdx);
+                itemSelect.dispatchEvent(new Event('change'));
+                updatePriceAndTotal();
+            }
+            if (searchResults) searchResults.style.display = 'none';
+            if (itemSearch) itemSearch.value = '';
         }
 
         function updatePriceAndTotal() {
@@ -267,13 +342,90 @@ document.addEventListener('DOMContentLoaded', function() {
             cartTotalEl.textContent = total > 0 ? formatCurrency(total) : '-';
         }
 
+        const itemSearch = document.getElementById('itemSearch');
+        const clearSearch = document.getElementById('clearSearch');
+        const searchResults = document.getElementById('searchResults');
+
         if (categorySelect) {
             categorySelect.addEventListener('change', () => {
-                populateItemsForCategory(categorySelect.value);
+                const q = itemSearch ? itemSearch.value.trim() : '';
+                populateItemsForCategory(categorySelect.value, q);
+                renderSearchResults(categorySelect.value, q);
+            });
+        }
+        if (itemSearch) {
+            itemSearch.addEventListener('input', () => {
+                const q = itemSearch.value.trim();
+                populateItemsForCategory(categorySelect.value, q);
+                renderSearchResults(categorySelect.value, q);
+            });
+
+            itemSearch.addEventListener('keydown', (e) => {
+                if (!searchResults || searchResults.style.display === 'none') return;
+                const items = searchResults.querySelectorAll('button.list-group-item');
+                let selected = parseInt(searchResults.dataset.selectedIndex || '-1');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selected = Math.min(selected + 1, items.length - 1);
+                    updateSearchResultHighlight(items, selected);
+                    searchResults.dataset.selectedIndex = String(selected);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selected = Math.max(selected - 1, 0);
+                    updateSearchResultHighlight(items, selected);
+                    searchResults.dataset.selectedIndex = String(selected);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (selected >= 0 && items[selected]) {
+                        const menuIdx = parseInt(items[selected].dataset.menuIndex);
+                        selectSearchResult(menuIdx);
+                    }
+                }
+            });
+
+            // Keyboard shortcut: press '/' to focus the search box (unless typing in an input)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/') {
+                    const active = document.activeElement;
+                    const tag = active && active.tagName ? active.tagName.toLowerCase() : '';
+                    if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+                        e.preventDefault();
+                        itemSearch.focus();
+                        if (itemSearch.select) itemSearch.select();
+                    }
+                }
+            });
+        }
+        if (clearSearch) {
+            clearSearch.addEventListener('click', () => {
+                if (itemSearch) itemSearch.value = '';
+                populateItemsForCategory(categorySelect.value, '');
+                renderSearchResults(categorySelect.value, '');
+                if (itemSearch) itemSearch.focus();
             });
         }
         if (itemSelect) {
             itemSelect.addEventListener('change', updatePriceAndTotal);
+        }
+        // Close search results when clicking outside
+        if (searchResults) {
+            document.addEventListener('click', (e) => {
+                if (!itemSearch.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        }
+
+        function updateSearchResultHighlight(items, selectedIndex) {
+            items.forEach((item, idx) => {
+                if (idx === selectedIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
         }
         if (qtyInput) {
             qtyInput.addEventListener('input', updatePriceAndTotal);
