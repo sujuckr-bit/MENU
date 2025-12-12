@@ -254,32 +254,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            const itemObj = menus[cat][menuIdx];
-            const itemName = itemObj.name;
-            const price = itemObj.price;
-            const qty = parseInt(qtyInput.value, 10) || 1;
-            const subtotal = price * qty;
-
-            // Cek apakah item sudah ada di keranjang
-            const existing = cart.find(ci => ci.category === cat && ci.itemName === itemName);
-            if (existing) {
-                existing.quantity += qty;
-                existing.subtotal = existing.price * existing.quantity;
-            } else {
-                cart.push({ category: cat, itemName, price, quantity: qty, subtotal });
+            // Set nilai di itemSelect (untuk menampilkan di dropdown)
+            if (itemSelect) {
+                itemSelect.value = String(menuIdx);
+                itemSelect.dispatchEvent(new Event('change'));
             }
             
-            updateCartDisplay();
-            
-            // Reset form
-            if (qtyInput) qtyInput.value = '1';
+            // Clear search dan tutup dropdown
             if (itemSearch) itemSearch.value = '';
             if (searchResults) searchResults.style.display = 'none';
-            if (itemSelect) itemSelect.value = '';
+            
+            // Update harga dan total berdasarkan item yang dipilih
             updatePriceAndTotal();
             
-            // Fokus kembali ke search untuk memudahkan pemilihan item berikutnya
-            if (itemSearch) itemSearch.focus();
+            // Fokus ke input jumlah agar user bisa langsung atur jumlah
+            if (qtyInput) qtyInput.focus();
         }
 
         function updatePriceAndTotal() {
