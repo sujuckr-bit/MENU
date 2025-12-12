@@ -4,67 +4,202 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BAZAR HmI - Pesan Makanan & Minuman</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">
-                <img src="logo.png" alt="HmI Logo" height="40" class="me-2">
-                🎉 BAZAR HmI
+            <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
+                <img src="logo.png" alt="HmI Logo" height="35" class="me-2">
+                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link active" href="pesan.html">📝 Pesan Sekarang</a>
+                        <a class="nav-link" href="#features" style="color: #495057; font-weight: 500;">Fitur</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="daftar.html">📋 Daftar Pesanan</a>
+                        <a class="nav-link" href="pesan.html" style="color: #495057; font-weight: 500;">Pesan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: #17a2b8; border: none; border-radius: 6px;">Pesan Sekarang</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- HOME CONTENT -->
-    <div class="container my-5">
-        <div class="text-center mb-5">
-            <img src="logo.png" alt="HmI KOMISARIAT HANDAYANI" style="max-width:200px; height:auto; margin-bottom: 20px;">
-            <h1 class="display-4 text-primary fw-bold mb-3">BAZAR HmI</h1>
-            <p class="lead text-muted">Selamat datang di sistem pemesanan makanan dan minuman BAZAR HmI</p>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card shadow-lg border-0 h-100">
-                    <div class="card-body text-center">
-                        <h2 class="card-title mb-3">📝 Pesan Makanan & Minuman</h2>
-                        <p class="card-text mb-4">Pilih kategori makanan atau minuman yang Anda inginkan, tentukan jumlah, dan pesan sekarang!</p>
-                        <a href="pesan.html" class="btn btn-primary btn-lg">Mulai Pesan</a>
+    <!-- HERO SECTION -->
+    <section class="hero-section" style="background: linear-gradient(135deg, #f8f9fb 0%, #e8f1f8 100%); padding: 80px 0; position: relative; overflow: hidden;">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <!-- Left Content -->
+                <div class="col-lg-6">
+                    <div class="logo-container mb-4" style="display: inline-block; background: rgba(23, 162, 184, 0.1); border-radius: 12px; padding: 12px 24px;">
+                        <img src="logo.png" alt="HmI Logo" height="40" style="filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));">
+                    </div>
+                    <h1 class="display-5 fw-bold mb-4" style="color: #1a3a52; line-height: 1.2;">
+                        BAZAR HmI
+                        <br>
+                        Sistem Pemesanan
+                        <br>
+                        <span style="color: #17a2b8;">Makanan & Minuman</span>
+                    </h1>
+                    <p class="lead mb-4" style="color: #6c757d; font-size: 1.15rem;">
+                        Pesan makanan dan minuman favorit Anda dengan mudah. Dapatkan pengalaman pemesanan yang cepat, aman, dan menyenangkan.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="pesan.html" class="btn btn-lg px-5" style="background: #17a2b8; color: white; border-radius: 8px; font-weight: 600; border: none;">
+                            Mulai Pesan Sekarang
+                        </a>
+                        <a href="daftar.html" class="btn btn-lg px-5" style="border: 2px solid #dee2e6; color: #1a3a52; border-radius: 8px; font-weight: 600; background: transparent;">
+                            Lihat Pesanan
+                        </a>
+                    </div>
+                    <div class="mt-5 pt-3" style="border-top: 1px solid #dee2e6;">
+                        <p class="text-muted mb-2" style="font-size: 0.9rem;">Panitia Pelaksana</p>
+                        <p class="fw-bold" style="color: #1a3a52;">
+                            RAKER & CAMP INTELEKTUAL
+                        </p>
+                        <p class="text-muted" style="font-size: 0.9rem;">
+                            Himpunan Mahasiswa Islam Komisariat Handayani - Cabang Makassar
+                        </p>
+                    </div>
+                </div>
+                <!-- Right Illustration -->
+                <div class="col-lg-6 text-center">
+                    <div style="background: rgba(23, 162, 184, 0.1); border-radius: 20px; padding: 40px; position: relative;">
+                        <svg viewBox="0 0 400 400" style="max-width: 100%; height: auto;">
+                            <!-- Decoration -->
+                            <circle cx="350" cy="50" r="40" fill="#17a2b8" opacity="0.1"/>
+                            <circle cx="50" cy="350" r="60" fill="#17a2b8" opacity="0.1"/>
+                            
+                            <!-- Food Illustration -->
+                            <rect x="80" y="80" width="240" height="240" rx="20" fill="#fff" stroke="#17a2b8" stroke-width="2" opacity="0.5"/>
+                            
+                            <!-- Plate -->
+                            <circle cx="200" cy="180" r="80" fill="none" stroke="#17a2b8" stroke-width="3"/>
+                            <circle cx="200" cy="180" r="70" fill="#fff9f0"/>
+                            
+                            <!-- Food items -->
+                            <rect x="150" y="130" width="100" height="60" rx="10" fill="#FFD700" opacity="0.8"/>
+                            <circle cx="180" cy="200" r="15" fill="#FF6B6B" opacity="0.8"/>
+                            <circle cx="220" cy="190" r="12" fill="#4ECDC4" opacity="0.8"/>
+                            <path d="M160 220 Q200 240 240 220" stroke="#95E1D3" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            
+                            <!-- Utensils -->
+                            <rect x="100" y="280" width="8" height="60" rx="4" fill="#C0C0C0"/>
+                            <ellipse cx="104" cy="340" rx="12" ry="8" fill="#A9A9A9"/>
+                            <rect x="290" y="280" width="8" height="60" rx="4" fill="#C0C0C0" transform="rotate(-15 294 310)"/>
+                            <path d="M290 285 L310 290" stroke="#C0C0C0" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card shadow-lg border-0 h-100">
-                    <div class="card-body text-center">
-                        <h2 class="card-title mb-3">📋 Lihat Daftar Pesanan</h2>
-                        <p class="card-text mb-4">Lihat semua pesanan yang sudah masuk, edit, atau hapus pesanan jika diperlukan.</p>
-                        <a href="daftar.html" class="btn btn-success btn-lg">Lihat Daftar</a>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="py-5" style="background: #fff;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge bg-light text-primary mb-3" style="padding: 8px 16px; font-size: 0.9rem; font-weight: 600;">FITUR UTAMA</span>
+                <h2 class="h2 fw-bold mb-3" style="color: #1a3a52;">Kemudahan Dalam Setiap Langkah</h2>
+                <p class="lead text-muted">Nikmati pengalaman pemesanan yang seamless dengan fitur-fitur unggulan kami</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 h-100" style="background: #f8f9fb; border-radius: 12px; transition: all 0.3s ease;">
+                        <div class="card-body p-4">
+                            <div style="width: 60px; height: 60px; background: #17a2b8; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 28px;">
+                                📝
+                            </div>
+                            <h5 class="card-title mb-3 fw-bold" style="color: #1a3a52;">Pesan Dengan Mudah</h5>
+                            <p class="card-text text-muted">Pilih kategori makanan, tentukan jumlah, dan pesan dalam beberapa klik saja.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 h-100" style="background: #f8f9fb; border-radius: 12px; transition: all 0.3s ease;">
+                        <div class="card-body p-4">
+                            <div style="width: 60px; height: 60px; background: #20c997; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 28px;">
+                                ✅
+                            </div>
+                            <h5 class="card-title mb-3 fw-bold" style="color: #1a3a52;">Kelola Pesanan</h5>
+                            <p class="card-text text-muted">Lihat, edit, atau batalkan pesanan Anda kapan saja dengan mudah.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 h-100" style="background: #f8f9fb; border-radius: 12px; transition: all 0.3s ease;">
+                        <div class="card-body p-4">
+                            <div style="width: 60px; height: 60px; background: #ffc107; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 28px;">
+                                ⚡
+                            </div>
+                            <h5 class="card-title mb-3 fw-bold" style="color: #1a3a52;">Cepat & Efisien</h5>
+                            <p class="card-text text-muted">Proses pemesanan yang cepat dan responsif untuk kenyamanan maksimal.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <footer class="bg-dark text-white text-center py-3 mt-5">
-        <p class="mb-0">© 2024 BAZAR HmI - Komisariat Handayani. All rights reserved.</p>
+    <!-- CTA SECTION -->
+    <section class="py-5" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white;">
+        <div class="container text-center">
+            <h2 class="h3 fw-bold mb-4">Siap Untuk Memulai?</h2>
+            <p class="lead mb-4 opacity-75">Mulai pesan makanan dan minuman favorit Anda sekarang juga</p>
+            <a href="pesan.html" class="btn btn-light btn-lg px-5" style="color: #17a2b8; font-weight: 600; border-radius: 8px;">
+                Mulai Pesan Sekarang
+            </a>
+        </div>
+    </section>
+
+    <footer class="bg-dark text-white py-5" style="border-top: 1px solid rgba(255,255,255,0.1);">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold mb-3">BAZAR HmI</h5>
+                    <p class="text-muted">Platform pemesanan makanan dan minuman yang mudah dan cepat.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold mb-3">Navigasi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-muted text-decoration-none">Beranda</a></li>
+                        <li><a href="pesan.html" class="text-muted text-decoration-none">Pesan</a></li>
+                        <li><a href="daftar.html" class="text-muted text-decoration-none">Daftar Pesanan</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">Panitia Pelaksana</h5>
+                    <p class="text-muted mb-2">RAKER & CAMP INTELEKTUAL</p>
+                    <p class="text-muted small">HmI Komisariat Handayani<br>Cabang Makassar</p>
+                </div>
+            </div>
+            <hr class="bg-secondary opacity-25 my-4">
+            <div class="text-center">
+                <p class="text-muted mb-0">© 2024 BAZAR HmI - Himpunan Mahasiswa Islam Komisariat Handayani. All rights reserved.</p>
+            </div>
+        </div>
     </footer>
 
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
