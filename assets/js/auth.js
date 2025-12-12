@@ -5,7 +5,9 @@
 // Toggle untuk menonaktifkan mekanisme hashing SHA-256 (development/testing)
 // Jika di-set true, password disimpan dan dibandingkan secara plaintext di localStorage.
 // WARNING: Menonaktifkan SHA sangat tidak aman untuk production.
-const DISABLE_SHA = true;
+// Default: use SHA hashing for better security. To keep backward compatibility,
+// existing plaintext password (if present) will be migrated to a hash.
+const DISABLE_SHA = false;
 
 // Initialize dengan default password jika belum ada
 const DEFAULT_PASSWORD_HASH = 'f8cd43ba29c16eb96f04a8f39de49e68bf70a04ccb5b40a2d5e03a70c1a46bb0'; // SHA-256 hash dari "admin123"
@@ -16,7 +18,20 @@ function initializeAdminPassword() {
             localStorage.setItem('adminPasswordPlain', 'admin123');
         }
     } else {
-        if (!localStorage.getItem('adminPasswordHash')) {
+        // If an old plaintext password exists, migrate it to hashed storage asynchronously
+        const plain = localStorage.getItem('adminPasswordPlain');
+        if (plain && !localStorage.getItem('adminPasswordHash')) {
+            sha256Hex(plain).then(h => {
+                try {
+                    localStorage.setItem('adminPasswordHash', h);
+                    localStorage.removeItem('adminPasswordPlain');
+                } catch (e) {
+                    // ignore storage errors
+                }
+            }).catch(() => {});
+        }
+
+        if (!localStorage.getItem('adminPasswordHash') && !plain) {
             localStorage.setItem('adminPasswordHash', DEFAULT_PASSWORD_HASH);
         }
     }
@@ -57,6 +72,23 @@ async function loginAdmin(password) {
             return true;
         }
         return false;
+    }
+
+    // Backwards-compat: if a legacy plaintext exists, allow login with it and migrate
+    const legacyPlain = localStorage.getItem('adminPasswordPlain');
+    if (legacyPlain) {
+        if (password === legacyPlain) {
+            sessionStorage.setItem('isAdmin', '1');
+            // migrate plaintext to hash in background
+            sha256Hex(password).then(h => {
+                try {
+                    localStorage.setItem('adminPasswordHash', h);
+                    localStorage.removeItem('adminPasswordPlain');
+                } catch (e) {}
+            }).catch(() => {});
+            return true;
+        }
+        // otherwise fall through to hashed check
     }
 
     const storedHash = getAdminPasswordHash();

@@ -1,0 +1,79 @@
+MENU BAZAR HIMPUNAN MAHASISWA ISLAM
+
+=== MENU MINUMAN ===
+
+-- COFFEE --
+- Kopi Pandan (Hot/Ice) — 28000
+- Kopi Gula Aren (Hot/Ice) — 28000
+- Cappuccino (Hot/Ice) — 25000
+- Coffee Latte (Hot/Ice) — 25000
+- Kopi Susu (Hot/Ice) — 25000
+- Spanish Latte (Hot/Ice) — 25000
+
+-- NON COFFEE --
+- Teh Tarik (Hot/Ice) — 25000
+- Lemon Tea (Hot/Ice) — 25000
+- Green Tea (Hot/Ice) — 25000
+- Lychee Tea — 25000
+- Es Teh Tawar — 18000
+- Es Teh Manis — 20000
+- Coklat (Hot/Ice) — 25000
+- Milo (Hot/Ice) — 27000
+- Soda Gembira — 27000
+- Mango Soda — 28000
+- Mango Yakult — 28000
+- Lychee Yakult — 28000
+- Strawberry Yakult — 28000
+- Oreo Frappe Blend — 28000
+- Pink Lava — 28000
+- Juice Markisa — 28000
+- Juice Jeruk — 28000
+- Juice Mangga — 28000
+- Juice Alpukat — 28000
+- Juice Sirsak — 25000
+- Kuku Bima Susu — 25000
+- Extra Joss Susu — 10000
+- Air Mineral — 18000
+- Fanta — (harga tidak tercantum)
+
+=== MENU MAKANAN ===
+
+-- NASI --
+- Nasi Goreng Merah — 27000
+- Nasi Goreng Jakarta — 28000
+- Nasi Goreng Special — 30000
+- Nasi Ayam Lalapan — 35000
+- Chicken Teriyaki — 35000
+- Nasi Putih — 15000
+
+-- MIE --
+- Mie Bakso — 28000
+- Bakso — 28000
+- Mie Goreng Jawa — 27000
+- Spaghetti Sausage — 30000
+- Kwetiau Goreng — 28000
+- Kwetiau Kuah — 28000
+
+-- SNACK --
+- Bakso Goreng — 25000
+- Donat Kentang Mix Rasa — 25000
+- Ubi Goreng — 25000
+- Lumpia Goreng — 25000
+- Pisang Goreng Ori — 25000
+- Pisgor Coklat + Keju — 28000
+- Pisgor Strawberry + Keju — 28000
+- Pisgor Greentea + Keju — 28000
+- Chicken Wings — 30000
+- Snack Platter — 28000
+- Kentang Goreng — 25000
+- Burger Sapi — 30000
+
+-- INDOMIE --
+- Indomie Kuah/Goreng + Bakso — 23000
+- Indomie Kuah/Goreng + Sosis — 23000
+- Indomie Kuah/Goreng + Nugget — 23000
+- Indomie Kuah/Goreng + Telur — 23000
+
+Notes:
+- Harga telah dinormalisasi ke format numerik tanpa titik (mis. 28.000 → 28000).
+- Item yang tidak memiliki harga asli dicatat sebagai "(harga tidak tercantum)".

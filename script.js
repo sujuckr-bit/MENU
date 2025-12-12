@@ -21,87 +21,99 @@ document.addEventListener('DOMContentLoaded', function() {
     let editingId = null;
     let cart = [];
 
-    // Menu data
+    // Menu data (diperbarui dari menu_bazar.txt)
     const menus = {
         Minum: [
-            { name: "Kopi Susu (Hot/Ice)", price: 23000 },
-            { name: "Cappucino (Hot/Ice)", price: 23000 },
-            { name: "Coffee Latte (Hot/Ice)", price: 23000 },
-            { name: "Coffee Spanish Latte (Hot/Ice)", price: 23000 },
-            { name: "Coffee Caramel", price: 26000 },
-            { name: "Coffee Mochacino", price: 26000 },
-            { name: "Coffee Cream", price: 26000 },
-            { name: "Coffee Pandan (Ice)", price: 26000 },
-            { name: "Coffee Gula Aren (Ice)", price: 26000 },
-            { name: "Air Mineral", price: 13000 },
-            { name: "Fanta", price: 16000 },
-            { name: "Es Teh Tawar", price: 14000 },
-            { name: "Es Teh Manis", price: 14000 },
-            { name: "Thaitea", price: 23000 },
-            { name: "Teh Tarik (Hot/Ice)", price: 23000 },
-            { name: "Lemon Tea (Hot/Ice)", price: 23000 },
-            { name: "Green Tea (Hot/Ice)", price: 23000 },
-            { name: "Lychee Tea", price: 23000 },
-            { name: "Taro", price: 23000 },
-            { name: "Red Velvet", price: 23000 },
-            { name: "Pink Lava", price: 23000 },
-            { name: "Juice Markisa", price: 23000 },
-            { name: "Juice Jeruk", price: 23000 },
-            { name: "Juice Mangga", price: 23000 },
-            { name: "Juice Alpukat", price: 23000 },
-            { name: "Juice Buah Naga", price: 23000 },
-            { name: "Extra Joss Susu", price: 23000 },
-            { name: "Kuku Bima Susu", price: 23000 },
-            { name: "Coklat (Hot/Ice)", price: 23000 },
-            { name: "Milo (Hot/Ice)", price: 23000 },
-            { name: "Soda Gembira (Ice)", price: 23000 },
-            { name: "Blue Bell Soda (Ice)", price: 23000 },
-            { name: "Melon Yakult (Ice)", price: 26000 },
-            { name: "Mango Yakult (Ice)", price: 26000 },
-            { name: "Lychee Yakult (Ice)", price: 26000 },
-            { name: "Strawberry Yakult (Ice)", price: 26000 },
-            { name: "Mango Soda (Ice)", price: 25000 },
-            { name: "Matcha Latte", price: 28000 },
-            { name: "Strawberry Matcha", price: 28000 },
-            { name: "Matcha Oreo", price: 28000 },
-            { name: "Matchaco", price: 28000 },
-            { name: "Matcha Koko", price: 28000 },
-            { name: "Oreo Frappe Blend", price: 28000 }
+            { name: "Kopi Pandan (Hot/Ice)", price: 28000 },
+            { name: "Kopi Gula Aren (Hot/Ice)", price: 28000 },
+            { name: "Cappuccino (Hot/Ice)", price: 25000 },
+            { name: "Coffee Latte (Hot/Ice)", price: 25000 },
+            { name: "Kopi Susu (Hot/Ice)", price: 25000 },
+            { name: "Spanish Latte (Hot/Ice)", price: 25000 },
+            { name: "Teh Tarik (Hot/Ice)", price: 25000 },
+            { name: "Lemon Tea (Hot/Ice)", price: 25000 },
+            { name: "Green Tea (Hot/Ice)", price: 25000 },
+            { name: "Lychee Tea", price: 25000 },
+            { name: "Es Teh Tawar", price: 18000 },
+            { name: "Es Teh Manis", price: 20000 },
+            { name: "Coklat (Hot/Ice)", price: 25000 },
+            { name: "Milo (Hot/Ice)", price: 27000 },
+            { name: "Soda Gembira", price: 27000 },
+            { name: "Mango Soda", price: 28000 },
+            { name: "Mango Yakult", price: 28000 },
+            { name: "Lychee Yakult", price: 28000 },
+            { name: "Strawberry Yakult", price: 28000 },
+            { name: "Oreo Frappe Blend", price: 28000 },
+            { name: "Pink Lava", price: 28000 },
+            { name: "Juice Markisa", price: 28000 },
+            { name: "Juice Jeruk", price: 28000 },
+            { name: "Juice Mangga", price: 28000 },
+            { name: "Juice Alpukat", price: 28000 },
+            { name: "Juice Sirsak", price: 25000 },
+            { name: "Kuku Bima Susu", price: 25000 },
+            { name: "Extra Joss Susu", price: 10000 },
+            { name: "Air Mineral", price: 18000 },
+            { name: "Fanta", price: 16000 }
         ],
         Makan: [
-            { name: "Chicken Teriyaki", price: 23000 },
-            { name: "Chicken Yakiniku", price: 23000 },
-            { name: "Nasi Goreng Merah", price: 25000 },
-            { name: "Nasi Goreng Kampung", price: 26000 },
-            { name: "Nasi Goreng Jakarta", price: 26000 },
-            { name: "Nasi Goreng Ikan Asin", price: 28000 },
-            { name: "Nasi Goreng Bangkok", price: 28000 },
-            { name: "Nasi Goreng Special", price: 28000 },
-            { name: "Nasi Ayam Rica", price: 28000 },
-            { name: "Nasi Ayam Cobek Mata", price: 28000 },
-            { name: "Nasi Putih", price: 13000 },
-            { name: "Bakso", price: 23000 },
-            { name: "Mie Goreng Jawa", price: 25000 },
-            { name: "Mie Bakso", price: 26000 },
-            { name: "Spaghetti Sausage", price: 26000 },
-            { name: "Kwetiau Goreng", price: 26000 },
-            { name: "Kwetiau Kuah", price: 26000 },
-            { name: "Mie Kering", price: 28000 },
-            { name: "Ubi Goreng", price: 18000 },
-            { name: "Pisang Goreng Ori", price: 18000 },
-            { name: "Kroket Goreng", price: 23000 },
-            { name: "Kentang Goreng", price: 23000 },
-            { name: "Pisang Goreng (varian)", price: 23000 },
-            { name: "Chicken Wing", price: 28000 },
-            { name: "Snack Pletter", price: 28000 },
-            { name: "Burger (Sapi/Ayam)", price: 28000 },
-            { name: "Pangsit Kuah", price: 28000 },
-            { name: "Pangsit Pedas", price: 28000 },
-            { name: "Indomie Soto/Goreng", price: 16000 },
-            { name: "Toping", price: 13000 },
-            { name: "Toping Bakso/Telur/Nugget/Sosis", price: 13000 }
+            { name: "Nasi Goreng Merah", price: 27000 },
+            { name: "Nasi Goreng Jakarta", price: 28000 },
+            { name: "Nasi Goreng Special", price: 30000 },
+            { name: "Nasi Ayam Lalapan", price: 35000 },
+            { name: "Chicken Teriyaki", price: 35000 },
+            { name: "Nasi Putih", price: 15000 },
+            { name: "Mie Bakso", price: 28000 },
+            { name: "Bakso", price: 28000 },
+            { name: "Mie Goreng Jawa", price: 27000 },
+            { name: "Spaghetti Sausage", price: 30000 },
+            { name: "Kwetiau Goreng", price: 28000 },
+            { name: "Kwetiau Kuah", price: 28000 },
+            { name: "Bakso Goreng", price: 25000 },
+            { name: "Donat Kentang Mix Rasa", price: 25000 },
+            { name: "Ubi Goreng", price: 25000 },
+            { name: "Lumpia Goreng", price: 25000 },
+            { name: "Pisang Goreng Ori", price: 25000 },
+            { name: "Pisgor Coklat + Keju", price: 28000 },
+            { name: "Pisgor Strawberry + Keju", price: 28000 },
+            { name: "Pisgor Greentea + Keju", price: 28000 },
+            { name: "Chicken Wings", price: 30000 },
+            { name: "Snack Platter", price: 28000 },
+            { name: "Kentang Goreng", price: 25000 },
+            { name: "Burger Sapi", price: 30000 },
+            { name: "Indomie + Bakso", price: 23000 },
+            { name: "Indomie + Sosis", price: 23000 },
+            { name: "Indomie + Nugget", price: 23000 },
+            { name: "Indomie + Telur", price: 23000 }
         ]
     };
+
+    // Load saved menus from localStorage if present; otherwise persist defaults
+    try {
+        const saved = localStorage.getItem('siteMenus');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            for (const k in parsed) {
+                menus[k] = parsed[k];
+            }
+        } else {
+            localStorage.setItem('siteMenus', JSON.stringify(menus));
+        }
+    } catch (e) {
+        console.error('Gagal memuat atau menyimpan siteMenus:', e);
+    }
+
+    // Expose helper to save menus from other pages (admin)
+    function saveMenusToStorage() {
+        try {
+            localStorage.setItem('siteMenus', JSON.stringify(menus));
+            // touch timestamp to trigger storage event in some browsers
+            localStorage.setItem('siteMenusUpdatedAt', String(Date.now()));
+        } catch (e) {
+            console.error('Gagal menyimpan siteMenus:', e);
+        }
+    }
+    window.saveMenusToStorage = saveMenusToStorage;
+    window.menus = menus; // expose for debugging/admin pages
 
     // Helper functions
     function formatCurrency(n) {
@@ -190,12 +202,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const q = String(filter || '').toLowerCase();
             let added = 0;
             menus[cat].forEach((it, idx) => {
-                const label = `${it.name} — ${formatCurrency(it.price)}`;
+                const status = it.outOfStock ? ' (Habis)' : '';
+                const label = `${it.name}${status} — ${formatCurrency(it.price)}`;
                 const match = !q || it.name.toLowerCase().includes(q) || String(it.price).includes(q) || label.toLowerCase().includes(q);
                 if (!match) return;
                 const opt = document.createElement('option');
                 opt.value = String(idx);
                 opt.textContent = label;
+                if (it.outOfStock) opt.disabled = true;
                 itemSelect.appendChild(opt);
                 added++;
             });
@@ -222,9 +236,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const results = [];
             menus[cat].forEach((it, idx) => {
-                const label = `${it.name} — ${formatCurrency(it.price)}`;
+                const status = it.outOfStock ? ' (Habis)' : '';
+                const label = `${it.name}${status} — ${formatCurrency(it.price)}`;
                 const match = it.name.toLowerCase().includes(q) || String(it.price).includes(q) || label.toLowerCase().includes(q);
-                if (match) results.push({ idx, name: it.name, price: it.price, label });
+                if (match) results.push({ idx, name: it.name, price: it.price, label, outOfStock: !!it.outOfStock });
             });
 
             if (results.length === 0) {
@@ -253,6 +268,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.innerHTML = highlighted;
                 item.addEventListener('click', (e) => {
                     e.preventDefault();
+                    if (res.outOfStock) {
+                        alert('Item ini sedang habis/tidak tersedia.');
+                        return;
+                    }
                     selectSearchResult(res.idx);
                 });
                 searchResults.appendChild(item);
@@ -312,6 +331,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const itemObj = menus[cat][idx];
+            if (itemObj.outOfStock) {
+                alert('Item ini sedang habis/tidak dapat dipesan.');
+                return;
+            }
             const itemName = itemObj.name;
             const price = itemObj.price;
             const subtotal = price * qty;
@@ -409,6 +432,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         const menuIdx = parseInt(items[selected].dataset.menuIndex);
                         selectSearchResult(menuIdx);
                     }
+                }
+            });
+
+            // Listen for menu updates from admin page (storage events)
+            window.addEventListener('storage', (ev) => {
+                if (ev.key === 'siteMenus' || ev.key === 'siteMenusUpdatedAt') {
+                    try {
+                        const parsed = JSON.parse(localStorage.getItem('siteMenus') || '{}');
+                        for (const k in parsed) menus[k] = parsed[k];
+                    } catch (e) { console.error('Failed reload menus from storage', e); }
+                    // refresh current UI
+                    const q = itemSearch ? itemSearch.value.trim() : '';
+                    if (categorySelect) populateItemsForCategory(categorySelect.value, q);
+                    if (searchResults) renderSearchResults(categorySelect.value, q);
+                    updateCartDisplay();
                 }
             });
 
