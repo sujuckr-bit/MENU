@@ -971,52 +971,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Admin Settings - Password Change & Logout
     const isDaftarPage = document.getElementById('orderTable') !== null;
-    if (isDaftarPage && isAdmin()) {
-        const adminSettingsCard = document.getElementById('adminSettingsCard');
-        const changePasswordForm = document.getElementById('changePasswordForm');
-        const logoutBtn = document.getElementById('logoutAdminBtn');
-
-        if (adminSettingsCard) {
-            adminSettingsCard.style.display = 'block';
+    if (isDaftarPage) {
+        const adminContentContainer = document.getElementById('adminContentContainer');
+        const accessDeniedMsg = document.getElementById('accessDeniedMsg');
+        
+        // Check admin status and show/hide content
+        if (isAdmin()) {
+            if (adminContentContainer) adminContentContainer.style.display = 'block';
+            if (accessDeniedMsg) accessDeniedMsg.style.display = 'none';
+        } else {
+            if (adminContentContainer) adminContentContainer.style.display = 'none';
+            if (accessDeniedMsg) accessDeniedMsg.style.display = 'block';
         }
 
-        if (changePasswordForm) {
-            changePasswordForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
+        // Rest of admin handlers
+        if (isAdmin()) {
+            const changePasswordForm = document.getElementById('changePasswordForm');
+            const logoutBtn = document.getElementById('logoutAdminBtn');
+            const adminSettingsCard = document.getElementById('adminSettingsCard');
 
-                // Validation
-                if (newPassword.length < 6) {
-                    alert('❌ Password minimal 6 karakter');
-                    return;
-                }
+            if (adminSettingsCard) {
+                adminSettingsCard.style.display = 'block';
+            }
 
-                if (newPassword !== confirmPassword) {
-                    alert('❌ Password tidak cocok');
-                    return;
-                }
+            if (changePasswordForm) {
+                changePasswordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
 
-                // Change password
-                try {
-                    await setAdminPassword(newPassword);
-                    alert('✅ Password berhasil diubah! Silakan login kembali.');
-                    logoutAdmin();
-                    window.location.href = 'admin-login.html';
-                } catch (error) {
-                    alert('❌ Terjadi kesalahan: ' + error.message);
-                }
-            });
-        }
+                    // Validation
+                    if (newPassword.length < 6) {
+                        alert('❌ Password minimal 6 karakter');
+                        return;
+                    }
 
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                if (confirm('⚠️ Apakah Anda yakin ingin logout?')) {
-                    logoutAdmin();
-                    alert('✅ Logout berhasil');
-                    window.location.href = 'admin-login.html';
-                }
-            });
+                    if (newPassword !== confirmPassword) {
+                        alert('❌ Password tidak cocok');
+                        return;
+                    }
+
+                    // Change password
+                    try {
+                        await setAdminPassword(newPassword);
+                        alert('✅ Password berhasil diubah! Silakan login kembali.');
+                        logoutAdmin();
+                        window.location.href = 'admin-login.html';
+                    } catch (error) {
+                        alert('❌ Terjadi kesalahan: ' + error.message);
+                    }
+                });
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (confirm('⚠️ Apakah Anda yakin ingin logout?')) {
+                        logoutAdmin();
+                        alert('✅ Logout berhasil');
+                        window.location.href = 'admin-login.html';
+                    }
+                });
+            }
         }
     }
 });
