@@ -164,17 +164,25 @@
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
-        // Ensure admin password initialized and protect this page
-        initializeAdminPassword();
-        if (typeof isAdmin === 'function') {
-            if (!isAdmin()) {
-                // Not admin - redirect to login
-                location.href = 'admin-login.html';
+        // Protect this page: prefer server session check, fall back to client flag
+        (async function() {
+            try {
+                if (typeof fetchSessionInfo === 'function') {
+                    const info = await fetchSessionInfo();
+                    if (info && info.isAdmin) {
+                        sessionStorage.setItem('isAdmin','1');
+                        return; // allow access
+                    }
+                    // otherwise redirect to login
+                    location.href = 'admin-login.html';
+                    return;
+                }
+            } catch (e) {
+                // ignore and fallback
             }
-        } else {
-            // Fallback: check sessionStorage flag
+            // Fallback: check client-side flag
             if (sessionStorage.getItem('isAdmin') !== '1') location.href = 'admin-login.html';
-        }
+        })();
     </script>
     <script src="admin.js"></script>
     <script>

@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetBtn.addEventListener('click', () => {
-        if (!confirm('Reset menu ke isi default dari `menu_bazar.txt`? (Akan menimpa perubahan)')) return;
+        if (!confirm('Reset menu ke isi default dari `menu-bazar.txt`? (Akan menimpa perubahan)')) return;
         // try to remove siteMenus so script will use bundled defaults on reload
         localStorage.removeItem('siteMenus');
         localStorage.setItem('siteMenusUpdatedAt', String(Date.now()));

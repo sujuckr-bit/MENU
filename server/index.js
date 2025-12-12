@@ -171,6 +171,11 @@ async function main() {
     res.json({ ok: true });
   });
 
+  // Session info
+  app.get('/api/me', (req, res) => {
+    res.json({ isAdmin: !!req.session.isAdmin, username: req.session.username || null });
+  });
+
   const port = process.env.PORT || 3000;
   const server = http.createServer(app);
 

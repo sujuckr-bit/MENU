@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug info
     console.log('[SCRIPT] Script.js loaded - Page detection:', { isOrderPage, isListPage, isMyOrdersPage });
 
-    // Menu data (diperbarui dari menu_bazar.txt)
+    // Menu data (diperbarui dari menu-bazar.txt)
     const menus = {
         Minum: [
             { name: "Kopi Pandan (Hot/Ice)", price: 28000 },
