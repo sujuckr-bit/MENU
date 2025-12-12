@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesanan Saya - BAZAR HmI</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
+                <img src="logo.png" alt="HmI Logo" height="35" class="me-2">
+                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html" style="color: #495057; font-weight: 500;">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pesan.html" style="color: #495057; font-weight: 500;">Pesan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pesanan-saya.html" style="color: #495057; font-weight: 500;">Pesanan Saya</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin-login.html" style="color: #495057; font-weight: 500;">Admin</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: #17a2b8; border: none; border-radius: 6px;">Buat Pesanan</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="mb-5">
+            <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52;">📋 Pesanan Saya</h1>
+            <p class="lead text-muted">Lihat dan kelola pesanan Anda dengan mudah</p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card shadow-lg border-0 mb-4" style="border-radius: 12px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: 600;">🔍 Cari Pesanan Anda</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="filterName" class="form-label fw-bold" style="color: #1a3a52;">Nama Pembeli:</label>
+                        <input type="text" id="filterName" class="form-control" placeholder="Masukkan nama pembeli">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="filterTable" class="form-label fw-bold" style="color: #1a3a52;">Nomor Meja:</label>
+                        <input type="text" id="filterTable" class="form-control" placeholder="Cth: 1, 5, Takeaway">
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button id="filterBtn" type="button" class="btn" style="background: #17a2b8; color: white; font-weight: 600; border-radius: 8px;">
+                        🔍 Cari
+                    </button>
+                    <button id="resetBtn" type="button" class="btn btn-outline-secondary ms-2" style="font-weight: 600; border-radius: 8px;">
+                        ↻ Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Display Section -->
+        <div class="card shadow-lg border-0 mb-4" style="border-radius: 12px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: 600;">📦 Daftar Pesanan Anda</h5>
+            </div>
+            <div class="card-body p-4">
+                <div id="myOrdersContainer"></div>
+                <div id="noOrdersMsg" class="alert alert-info text-center" style="border-radius: 8px; display: none;">
+                    <p class="mb-0">Anda belum memiliki pesanan. <a href="pesan.html" style="color: #17a2b8; font-weight: 600;">Buat pesanan sekarang</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-5" style="background: #1a1a1a !important; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold mb-3" style="color: white;">BAZAR HmI</h5>
+                    <p style="color: #aaa;">Platform pemesanan makanan dan minuman yang mudah dan cepat.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="fw-bold mb-3" style="color: white;">Navigasi</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" style="color: #aaa; text-decoration: none; transition: color 0.3s;">Beranda</a></li>
+                        <li><a href="pesan.html" style="color: #aaa; text-decoration: none; transition: color 0.3s;">Pesan</a></li>
+                        <li><a href="pesanan-saya.html" style="color: #aaa; text-decoration: none; transition: color 0.3s;">Pesanan Saya</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3" style="color: white;">Panitia Pelaksana</h5>
+                    <p style="color: #aaa; margin-bottom: 0.5rem;">RAKER & CAMP INTELEKTUAL</p>
+                    <p style="color: #aaa; font-size: 0.9rem;">HmI Komisariat Handayani<br>Cabang Makassar</p>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0;">
+            <div class="text-center">
+                <p style="color: #aaa; margin-bottom: 0;">© 2024 BAZAR HmI - Himpunan Mahasiswa Islam Komisariat Handayani. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

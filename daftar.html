@@ -30,10 +30,13 @@
                         <a class="nav-link" href="pesan.html" style="color: #495057; font-weight: 500;">Pesan</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="pesanan-saya.html" style="color: #495057; font-weight: 500;">Pesanan Saya</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin.html" style="color: #495057; font-weight: 500;">Admin</a>
+                        <a class="nav-link" href="admin-login.html" style="color: #495057; font-weight: 500;">Admin</a>
                     </li>
                     <li class="nav-item ms-3">
                         <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: #17a2b8; border: none; border-radius: 6px;">Buat Pesanan</a>
@@ -74,6 +77,36 @@
                 <div id="noOrdersMsg" class="alert alert-info text-center" style="border-radius: 8px;">
                     <p class="mb-0">Belum ada pesanan. <a href="pesan.html" style="color: #17a2b8; font-weight: 600;">Buat pesanan baru</a></p>
                 </div>
+            </div>
+        </div>
+
+        <!-- Admin Settings Section -->
+        <div class="card shadow-lg border-0" style="border-radius: 12px; display: none;" id="adminSettingsCard">
+            <div class="card-header" style="background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: 600;">🔒 Pengaturan Admin</h5>
+            </div>
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3" style="color: #1a3a52;">Ubah Password Admin</h6>
+                <form id="changePasswordForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #1a3a52;">Password Baru:</label>
+                            <input type="password" id="newPassword" class="form-control" placeholder="Masukkan password baru" required>
+                            <small class="text-muted d-block mt-1">Minimal 6 karakter</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" style="color: #1a3a52;">Konfirmasi Password:</label>
+                            <input type="password" id="confirmPassword" class="form-control" placeholder="Ulangi password baru" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn mt-3" style="background: #6f42c1; color: white; font-weight: 600; border-radius: 8px;">
+                        🔐 Ubah Password
+                    </button>
+                </form>
+                <hr class="my-4">
+                <button id="logoutAdminBtn" class="btn btn-danger w-100" style="font-weight: 600; border-radius: 8px;">
+                    🚪 Logout Admin
+                </button>
             </div>
         </div>
 

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Deteksi halaman mana yang sedang aktif
     const isOrderPage = document.getElementById('orderForm') !== null;
     const isListPage = document.getElementById('orderList') !== null;
+    const isMyOrdersPage = document.getElementById('myOrdersContainer') !== null;
 
     const submitBtn = document.querySelector('button[type="submit"]');
     const initialSubmitText = submitBtn ? submitBtn.textContent : 'Simpan Pesanan';
@@ -550,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (orderTable) orderTable.style.display = 'none';
                 if (noOrdersMsg) {
                     noOrdersMsg.style.display = 'block';
-                    noOrdersMsg.innerHTML = 'Akses terbatas: hanya admin dapat melihat daftar pesanan. <a href="admin.html">Login sebagai admin</a>';
+                    noOrdersMsg.innerHTML = 'Akses terbatas: hanya admin dapat melihat daftar pesanan. <a href="admin-login.html">Login sebagai admin</a>';
                 }
                 if (exportBtn) exportBtn.disabled = true;
                 if (importBtn) importBtn.disabled = true;
@@ -848,5 +849,174 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         loadOrders();
+    }
+
+    // Halaman Pesanan Saya (pesanan-saya.html)
+    if (isMyOrdersPage) {
+        const myOrdersContainer = document.getElementById('myOrdersContainer');
+        const noOrdersMsg = document.getElementById('noOrdersMsg');
+        const filterBtn = document.getElementById('filterBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const filterName = document.getElementById('filterName');
+        const filterTable = document.getElementById('filterTable');
+
+        function displayMyOrders(ordersToShow = null) {
+            const allOrders = getOrders();
+            const orders = ordersToShow || allOrders;
+            
+            if (!myOrdersContainer) return;
+            myOrdersContainer.innerHTML = '';
+
+            if (orders.length === 0) {
+                if (noOrdersMsg) noOrdersMsg.style.display = 'block';
+                return;
+            }
+
+            if (noOrdersMsg) noOrdersMsg.style.display = 'none';
+
+            orders.forEach((order) => {
+                const statusBadge = order.completed ? 
+                    '<span class="badge bg-success">✅ Selesai</span>' : 
+                    '<span class="badge bg-warning">⏳ Sedang Diproses</span>';
+
+                const itemsList = order.items.map(item => 
+                    `<tr>
+                        <td>${item.itemName}</td>
+                        <td>(${item.category})</td>
+                        <td class="text-end">${item.quantity}x</td>
+                        <td class="text-end">${formatCurrency(item.subtotal)}</td>
+                    </tr>`
+                ).join('');
+
+                const orderCard = `
+                    <div class="card mb-4" style="border-left: 5px solid #17a2b8; border-radius: 8px;">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>👤 Nama Pembeli:</strong> ${order.buyerName}</p>
+                                    <p class="mb-1"><strong>🪑 Nomor Meja:</strong> ${order.tableNumber}</p>
+                                    <p class="mb-0"><strong>📅 ID Pesanan:</strong> <code>${order.id}</code></p>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <p class="mb-3">${statusBadge}</p>
+                                    <p><strong>💰 Total:</strong> <span style="color: #17a2b8; font-size: 1.3rem; font-weight: bold;">${formatCurrency(order.total)}</span></p>
+                                </div>
+                            </div>
+                            <hr>
+                            <h6 class="fw-bold mb-3">📋 Detail Item:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead style="background-color: #f8f9fb;">
+                                        <tr>
+                                            <th style="color: #1a3a52; font-weight: 600;">Nama Item</th>
+                                            <th style="color: #1a3a52; font-weight: 600;">Kategori</th>
+                                            <th style="color: #1a3a52; font-weight: 600;">Jumlah</th>
+                                            <th class="text-end" style="color: #1a3a52; font-weight: 600;">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${itemsList}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                myOrdersContainer.innerHTML += orderCard;
+            });
+        }
+
+        function filterOrders() {
+            const allOrders = getOrders();
+            const name = (filterName.value || '').toLowerCase().trim();
+            const table = (filterTable.value || '').toLowerCase().trim();
+
+            const filtered = allOrders.filter(order => {
+                const nameMatch = !name || order.buyerName.toLowerCase().includes(name);
+                const tableMatch = !table || order.tableNumber.toLowerCase().includes(table);
+                return nameMatch && tableMatch;
+            });
+
+            displayMyOrders(filtered);
+        }
+
+        if (filterBtn) {
+            filterBtn.addEventListener('click', filterOrders);
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (filterName) filterName.value = '';
+                if (filterTable) filterTable.value = '';
+                displayMyOrders();
+            });
+        }
+
+        // Allow Enter key to search
+        if (filterName) {
+            filterName.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') filterOrders();
+            });
+        }
+        if (filterTable) {
+            filterTable.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') filterOrders();
+            });
+        }
+
+        // Load orders on page load
+        displayMyOrders();
+    }
+
+    // Admin Settings - Password Change & Logout
+    const isDaftarPage = document.getElementById('orderTable') !== null;
+    if (isDaftarPage && isAdmin()) {
+        const adminSettingsCard = document.getElementById('adminSettingsCard');
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        const logoutBtn = document.getElementById('logoutAdminBtn');
+
+        if (adminSettingsCard) {
+            adminSettingsCard.style.display = 'block';
+        }
+
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Validation
+                if (newPassword.length < 6) {
+                    alert('❌ Password minimal 6 karakter');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    alert('❌ Password tidak cocok');
+                    return;
+                }
+
+                // Change password
+                try {
+                    await setAdminPassword(newPassword);
+                    alert('✅ Password berhasil diubah! Silakan login kembali.');
+                    logoutAdmin();
+                    window.location.href = 'admin-login.html';
+                } catch (error) {
+                    alert('❌ Terjadi kesalahan: ' + error.message);
+                }
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                if (confirm('⚠️ Apakah Anda yakin ingin logout?')) {
+                    logoutAdmin();
+                    alert('✅ Logout berhasil');
+                    window.location.href = 'admin-login.html';
+                }
+            });
+        }
     }
 });

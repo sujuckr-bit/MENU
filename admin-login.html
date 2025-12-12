@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - BAZAR HmI</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-lg border-0" style="border-radius: 12px;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; border-radius: 12px 12px 0 0; padding: 2rem 1.5rem;">
+                        <h2 class="mb-0" style="font-weight: 600;">🔐 Admin Login</h2>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4">Masuk sebagai admin untuk mengelola pesanan dan lihat daftar lengkap.</p>
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info mb-4" style="border-radius: 8px; border-left: 4px solid #17a2b8;">
+                            <p class="mb-0" style="font-size: 0.9rem;">
+                                <strong>Password default:</strong> <code>admin123</code><br>
+                                <small class="text-muted">Ubah password di panel admin setelah login</small>
+                            </p>
+                        </div>
+
+                        <form id="adminLoginForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #1a3a52;">Password</label>
+                                <div class="input-group">
+                                    <input id="adminPassword" type="password" class="form-control" placeholder="Masukkan password admin" required style="border-radius: 8px 0 0 8px; padding: 0.75rem 1rem;">
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword" style="border-radius: 0 8px 8px 0;">👁️</button>
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-lg" type="submit" style="background: #17a2b8; color: white; font-weight: 600; border-radius: 8px; padding: 0.75rem;">Login</button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+                        <div class="text-center mb-3">
+                            <p class="text-muted mb-2" style="font-size: 0.9rem;">Kembali ke halaman lain?</p>
+                            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                <a href="daftar.html" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">📋 Daftar Pesanan</a>
+                                <a href="index.html" class="btn btn-sm btn-outline-secondary" style="border-radius: 6px;">🏠 Beranda</a>
+                                <a href="pesan.html" class="btn btn-sm btn-outline-info" style="border-radius: 6px;">📝 Pesan</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="mt-4 p-3 bg-light rounded" style="border-left: 4px solid #ffc107;">
+                    <h6 class="fw-bold mb-2" style="color: #1a3a52;">💡 Tips Login Admin</h6>
+                    <ul class="small text-muted mb-0" style="font-size: 0.85rem;">
+                        <li>Default password adalah <strong>admin123</strong></li>
+                        <li>Ubah password di admin panel setelah login</li>
+                        <li>Password tersimpan di browser (localStorage)</li>
+                        <li>Logout otomatis saat tutup browser</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Initialize password saat halaman load
+        initializeAdminPassword();
+
+        // Toggle password visibility
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('adminPassword');
+        
+        togglePasswordBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.textContent = '👁️‍🗨️';
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.textContent = '👁️';
+            }
+        });
+
+        // When login succeeds, go to daftar.html
+        handleAdminLoginForm('adminLoginForm', 'adminPassword', 'daftar.html');
+    </script>
+</body>
+</html>

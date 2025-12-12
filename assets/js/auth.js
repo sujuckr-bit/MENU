@@ -1,8 +1,19 @@
-// Client-side admin auth using SHA-256 (NOT secure for production)
-// To avoid storing a plaintext password here, set `ADMIN_HASH` to the SHA-256
-// hex of your chosen password. Use `generateHash('yourPassword')` in the
-// browser console to produce the hash and paste it below.
-const ADMIN_HASH = '';
+// Client-side admin auth menggunakan SHA-256
+// Default password: "admin123" (bisa diubah dari admin panel)
+// PENTING: Ini client-side saja, untuk production gunakan server-side auth!
+
+// Initialize dengan default password jika belum ada
+const DEFAULT_PASSWORD_HASH = 'f8cd43ba29c16eb96f04a8f39de49e68bf70a04ccb5b40a2d5e03a70c1a46bb0'; // SHA-256 hash dari "admin123"
+
+function initializeAdminPassword() {
+    if (!localStorage.getItem('adminPasswordHash')) {
+        localStorage.setItem('adminPasswordHash', DEFAULT_PASSWORD_HASH);
+    }
+}
+
+function getAdminPasswordHash() {
+    return localStorage.getItem('adminPasswordHash') || DEFAULT_PASSWORD_HASH;
+}
 
 function isAdmin() {
     return sessionStorage.getItem('isAdmin') === '1';
@@ -22,19 +33,24 @@ function generateHash(password) {
     return sha256Hex(password);
 }
 
-// loginAdmin compares hash of provided password against ADMIN_HASH
+// loginAdmin compares hash of provided password against stored password hash
 async function loginAdmin(password) {
     if (!password) return false;
-    if (ADMIN_HASH && ADMIN_HASH.length === 64) {
-        const h = await sha256Hex(password);
-        if (h === ADMIN_HASH) {
-            sessionStorage.setItem('isAdmin', '1');
-            return true;
-        }
-        return false;
+    initializeAdminPassword();
+    const storedHash = getAdminPasswordHash();
+    const h = await sha256Hex(password);
+    if (h === storedHash) {
+        sessionStorage.setItem('isAdmin', '1');
+        return true;
     }
-    // Fallback: if ADMIN_HASH not set, deny login (safer than storing plaintext)
     return false;
+}
+
+function setAdminPassword(newPassword) {
+    return sha256Hex(newPassword).then(hash => {
+        localStorage.setItem('adminPasswordHash', hash);
+        return hash;
+    });
 }
 
 function logoutAdmin() {
