@@ -119,6 +119,29 @@
         </div>
     </div>
 
+    <!-- Admin Login Modal (shown to non-admin visitors) -->
+    <div class="modal fade" id="adminPromptModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content" style="border-radius:12px;">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Masuk untuk melihat daftar pesanan.</p>
+                    <form id="modalAdminLoginForm">
+                        <div class="mb-2">
+                            <input id="modalAdminPassword" type="password" class="form-control" placeholder="Password admin" required>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" type="submit">Login</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-dark text-white py-5" style="border-top: 1px solid rgba(255,255,255,0.1);">
         <div class="container">
             <div class="row mb-4">
@@ -157,5 +180,32 @@
     
     <!-- Script Aplikasi -->
     <script src="script.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // If user is not admin, show modal prompt; attach modal form to auth handler
+        (function() {
+            const isAdmin = sessionStorage.getItem('isAdmin') === '1';
+            const adminModalEl = document.getElementById('adminPromptModal');
+            if (!adminModalEl) return;
+            const modal = new bootstrap.Modal(adminModalEl, { backdrop: 'static', keyboard: false });
+            const form = document.getElementById('modalAdminLoginForm');
+            if (!isAdmin) {
+                modal.show();
+            }
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const pwd = document.getElementById('modalAdminPassword').value || '';
+                    const ok = await loginAdmin(pwd);
+                    if (ok) {
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Password salah atau ADMIN_HASH belum diset.');
+                    }
+                });
+            }
+        })();
+    </script>
 </body>
 </html>
