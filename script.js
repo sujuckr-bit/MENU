@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialSubmitText = submitBtn ? submitBtn.textContent : 'Simpan Pesanan';
     let editingId = null;
     let cart = [];
+    
+    // Debug info
+    console.log('📋 Script.js loaded - Page detection:', { isOrderPage, isListPage, isMyOrdersPage });
 
     // Menu data (diperbarui dari menu_bazar.txt)
     const menus = {
@@ -227,6 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Halaman Pesan (pesan.html)
     if (isOrderPage) {
+        console.log('✅ Initializing Order Page...');
         const categorySelect = document.getElementById('category');
         const itemSelect = document.getElementById('itemSelect');
         const priceDisplay = document.getElementById('priceDisplay');
@@ -238,6 +242,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const tableSelect = document.getElementById('tableNumber');
         const orderForm = document.getElementById('orderForm');
         const buyerInput = document.getElementById('buyerName');
+        
+        console.log('🔍 DOM Elements:', { 
+            categorySelect: !!categorySelect, 
+            itemSelect: !!itemSelect, 
+            tableSelect: !!tableSelect,
+            orderForm: !!orderForm
+        });
 
         // If someone requested to edit an existing order, only allow it for admin
         const editingJson = localStorage.getItem('editingOrder');
@@ -572,6 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Populate table numbers
         if (tableSelect) {
+            console.log('📍 Populating table numbers...');
             tableSelect.innerHTML = '<option value="">Pilih nomor meja</option>';
             for (let i = 1; i <= 20; i++) {
                 const opt = document.createElement('option');
@@ -583,7 +595,19 @@ document.addEventListener('DOMContentLoaded', function() {
             optTake.value = 'Takeaway';
             optTake.textContent = 'Takeaway';
             tableSelect.appendChild(optTake);
+            console.log('✅ Table numbers populated successfully! Total options:', tableSelect.options.length);
+        } else {
+            console.error('❌ Table select element not found!');
         }
+        
+        // Initialize category select with default value
+        if (categorySelect && categorySelect.value === '') {
+            categorySelect.value = 'Minum';
+            console.log('📌 Default category set to: Minum');
+        }
+        
+        // Display menus available
+        console.log('📊 Available menus:', Object.keys(menus).map(k => k + ' (' + menus[k].length + ' items)').join(', '));
 
         // Form submission
         if (orderForm) {

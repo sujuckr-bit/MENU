@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Menu & Nomor Meja</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-box { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        .success { background: #d4edda; border-color: #28a745; }
+        .error { background: #f8d7da; border-color: #dc3545; }
+        code { background: #f4f4f4; padding: 2px 5px; }
+        h3 { margin-top: 0; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Suite - Menu & Nomor Meja</h1>
+    
+    <div class="test-box">
+        <h3>Test 1: Check if pesan.html has required elements</h3>
+        <button onclick="testPesanHtml()">Run Test</button>
+        <pre id="test1-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 2: Check localStorage for menus</h3>
+        <button onclick="testLocalstorage()">Run Test</button>
+        <pre id="test2-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 3: Load pesan.html and check DOM</h3>
+        <button onclick="testPesanDOM()">Run Test</button>
+        <pre id="test3-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 4: Check script.js execution</h3>
+        <button onclick="testScriptExecution()">Run Test</button>
+        <pre id="test4-result"></pre>
+    </div>
+
+    <script>
+        function testPesanHtml() {
+            const result = document.getElementById('test1-result');
+            try {
+                fetch('pesan.html')
+                    .then(r => r.text())
+                    .then(html => {
+                        const checks = {
+                            'Has <form id="orderForm">': html.includes('id="orderForm"'),
+                            'Has <select id="category">': html.includes('id="category"'),
+                            'Has <select id="itemSelect">': html.includes('id="itemSelect"'),
+                            'Has <select id="tableNumber">': html.includes('id="tableNumber"'),
+                            'Has script.js': html.includes('src="script.js"'),
+                        };
+                        let output = '✅ HTML CHECKS:\n';
+                        Object.entries(checks).forEach(([key, val]) => {
+                            output += (val ? '✅' : '❌') + ' ' + key + '\n';
+                        });
+                        result.textContent = output;
+                        result.parentElement.classList.add(Object.values(checks).every(v => v) ? 'success' : 'error');
+                    });
+            } catch(e) {
+                result.textContent = '❌ Error: ' + e.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+
+        function testLocalstorage() {
+            const result = document.getElementById('test2-result');
+            try {
+                const menus = JSON.parse(localStorage.getItem('siteMenus') || '{}');
+                let output = '📦 LOCALSTORAGE MENUS:\n\n';
+                if (Object.keys(menus).length === 0) {
+                    output += '⚠️ No menus in localStorage\n';
+                } else {
+                    Object.entries(menus).forEach(([cat, items]) => {
+                        output += `✅ ${cat}: ${items.length} items\n`;
+                    });
+                }
+                result.textContent = output;
+                result.parentElement.classList.add(Object.keys(menus).length > 0 ? 'success' : 'error');
+            } catch(e) {
+                result.textContent = '❌ Error: ' + e.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+
+        function testPesanDOM() {
+            const result = document.getElementById('test3-result');
+            result.textContent = '⏳ Loading pesan.html...\n';
+            fetch('pesan.html')
+                .then(r => r.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const checks = {
+                        'orderForm': doc.getElementById('orderForm'),
+                        'category': doc.getElementById('category'),
+                        'itemSelect': doc.getElementById('itemSelect'),
+                        'tableNumber': doc.getElementById('tableNumber'),
+                        'buyerName': doc.getElementById('buyerName'),
+                        'orderList': doc.getElementById('orderList'),
+                    };
+                    let output = '🔍 DOM ELEMENTS IN PESAN.HTML:\n\n';
+                    Object.entries(checks).forEach(([id, elem]) => {
+                        output += (elem ? '✅' : '❌') + ' #' + id + '\n';
+                    });
+                    result.textContent = output;
+                    result.parentElement.classList.add(Object.values(checks).every(v => v) ? 'success' : 'error');
+                });
+        }
+
+        function testScriptExecution() {
+            const result = document.getElementById('test4-result');
+            result.textContent = '⏳ Checking script.js...\n';
+            fetch('script.js')
+                .then(r => r.text())
+                .then(js => {
+                    const checks = {
+                        'Has "isOrderPage" detection': js.includes('isOrderPage'),
+                        'Has table number population': js.includes('Populate table numbers'),
+                        'Has category select handler': js.includes('categorySelect.addEventListener'),
+                        'Has form submission handler': js.includes('orderForm.addEventListener'),
+                        'Has item select handler': js.includes('itemSelect.addEventListener'),
+                    };
+                    let output = '📝 SCRIPT.JS CHECKS:\n\n';
+                    Object.entries(checks).forEach(([key, val]) => {
+                        output += (val ? '✅' : '❌') + ' ' + key + '\n';
+                    });
+                    result.textContent = output;
+                    result.parentElement.classList.add(Object.values(checks).every(v => v) ? 'success' : 'error');
+                });
+        }
+    </script>
+</body>
+</html>
