@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function populateItemsForCategory(cat, filter = '') {
             if (!itemSelect) return;
+            // Tetap populate select untuk backup, tapi hidden dari UI
             itemSelect.innerHTML = '<option value="">Pilih item</option>';
             if (priceDisplay) priceDisplay.textContent = '-';
             if (totalDisplay) totalDisplay.textContent = '-';
@@ -192,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 itemSelect.appendChild(none);
             }
             itemSelect.selectedIndex = 0;
-            updatePriceAndTotal();
         }
 
         function renderSearchResults(cat, filter = '') {
@@ -248,13 +248,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function selectSearchResult(menuIdx) {
-            if (itemSelect) {
-                itemSelect.value = String(menuIdx);
-                itemSelect.dispatchEvent(new Event('change'));
-                updatePriceAndTotal();
+            const cat = categorySelect ? categorySelect.value : '';
+            if (!cat || !menus[cat] || !menus[cat][menuIdx]) {
+                alert('Item tidak valid atau kategori belum dipilih.');
+                return;
             }
-            if (searchResults) searchResults.style.display = 'none';
+            
+            const itemObj = menus[cat][menuIdx];
+            const itemName = itemObj.name;
+            const price = itemObj.price;
+            const qty = parseInt(qtyInput.value, 10) || 1;
+            const subtotal = price * qty;
+
+            // Cek apakah item sudah ada di keranjang
+            const existing = cart.find(ci => ci.category === cat && ci.itemName === itemName);
+            if (existing) {
+                existing.quantity += qty;
+                existing.subtotal = existing.price * existing.quantity;
+            } else {
+                cart.push({ category: cat, itemName, price, quantity: qty, subtotal });
+            }
+            
+            updateCartDisplay();
+            
+            // Reset form
+            if (qtyInput) qtyInput.value = '1';
             if (itemSearch) itemSearch.value = '';
+            if (searchResults) searchResults.style.display = 'none';
+            if (itemSelect) itemSelect.value = '';
+            updatePriceAndTotal();
+            
+            // Fokus kembali ke search untuk memudahkan pemilihan item berikutnya
+            if (itemSearch) itemSearch.focus();
         }
 
         function updatePriceAndTotal() {

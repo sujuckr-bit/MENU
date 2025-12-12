@@ -72,16 +72,18 @@
 
                         <div class="col-md-6">
                             <label for="itemSelect" class="form-label fw-bold" style="color: #1a3a52;">Item (pilih):</label>
-                            <div class="input-group mb-2">
-                                <input id="itemSearch" type="search" class="form-control" placeholder="Cari item (nama atau harga)... Tekan '/' untuk fokus" title="Tekan '/' di mana saja untuk fokus ke pencarian">
-                                <button id="clearSearch" type="button" class="btn btn-outline-secondary">Clear</button>
+                            <div id="itemSearchContainer" style="position: relative;">
+                                <div class="input-group mb-2">
+                                    <input id="itemSearch" type="search" class="form-control" placeholder="Cari item (nama atau harga)... Tekan '/' untuk fokus" title="Tekan '/' di mana saja untuk fokus ke pencarian" autocomplete="off">
+                                    <button id="clearSearch" type="button" class="btn btn-outline-secondary">Clear</button>
+                                </div>
+                                <small class="text-muted d-block mb-2">💡 Tip: Tekan <kbd>/</kbd> di keyboard untuk fokus pencarian dengan cepat</small>
+                                <!-- Custom dropdown untuk hasil pencarian dengan highlight -->
+                                <div id="searchResults" class="list-group" style="max-height: 300px; overflow-y: auto; display: none; position: absolute; top: 80px; left: 0; right: 0; z-index: 1000; background: white; border: 1px solid #dee2e6; border-radius: 8px;">
+                                    <!-- Hasil pencarian akan ditampilkan di sini -->
+                                </div>
                             </div>
-                            <small class="text-muted">💡 Tip: Tekan <kbd>/</kbd> di keyboard untuk fokus pencarian dengan cepat</small>
-                            <!-- Custom dropdown untuk hasil pencarian dengan highlight -->
-                            <div id="searchResults" class="list-group mt-2" style="max-height: 300px; overflow-y: auto; display: none;">
-                                <!-- Hasil pencarian akan ditampilkan di sini -->
-                            </div>
-                            <select id="itemSelect" class="form-select mt-2">
+                            <select id="itemSelect" class="form-select" style="display: none;">
                                 <option value="">Pilih item</option>
                             </select>
                         </div>
