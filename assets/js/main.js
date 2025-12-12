@@ -213,3 +213,31 @@
   document.addEventListener('scroll', navmenuScrollspy);
 
 })();
+
+// Hide admin-only nav links for non-admin users (run after DOM ready)
+(function() {
+  function hideAdminLinks() {
+    try {
+      const isAdmin = sessionStorage.getItem('isAdmin') === '1';
+      if (isAdmin) return;
+      const links = document.querySelectorAll('a[href="daftar.html"], a[href$="/daftar.html"]');
+      if (links.length === 0) return false; // signal not-ready
+      links.forEach(a => a.style.display = 'none');
+      return true;
+    } catch (e) {
+      return true; // fail closed
+    }
+  }
+
+  function runHideWithRetry() {
+    if (hideAdminLinks()) return;
+    // retry once after short delay in case nav was injected later
+    setTimeout(hideAdminLinks, 150);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    runHideWithRetry();
+  } else {
+    document.addEventListener('DOMContentLoaded', runHideWithRetry);
+  }
+})();

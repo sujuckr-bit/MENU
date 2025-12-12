@@ -11,6 +11,7 @@ function initializeAdminPassword() {
     }
 }
 
+
 function getAdminPasswordHash() {
     return localStorage.getItem('adminPasswordHash') || DEFAULT_PASSWORD_HASH;
 }
