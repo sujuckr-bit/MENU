@@ -1,0 +1,14 @@
+# Render service template for the API (edit values as needed)
+services:
+  - type: web
+    name: bazar-hmi-api
+    env: node
+    branch: main
+    repo: <your-repo-url>
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
