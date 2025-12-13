@@ -281,6 +281,30 @@
       "completed": false,
       "createdAt": 1765592137639,
       "id": 19
+    },
+    {
+      "buyerName": "DIMAS",
+      "tableNumber": "2",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 53000,
+      "completed": false,
+      "createdAt": 1765638922025,
+      "id": 20
     }
   ]
 }
