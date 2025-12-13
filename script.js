@@ -1,13 +1,3 @@
-const path = require('path');
-
-// Added static file serving
-app.use(express.static(path.join(__dirname, '..')));
-
-// Modified root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'));
-});
-
 document.addEventListener('DOMContentLoaded', function() {
     // Tunggu XLSX library ter-load
     function waitForXLSX(callback, attempt = 0) {
