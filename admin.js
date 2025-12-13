@@ -120,6 +120,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Small toast helper
+    function showToast(message, type = 'info', timeout = 3500) {
+        try {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.style.position = 'fixed';
+                container.style.right = '20px';
+                container.style.bottom = '20px';
+                container.style.zIndex = '9999';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.gap = '10px';
+                document.body.appendChild(container);
+            }
+
+            const el = document.createElement('div');
+            el.textContent = message;
+            el.style.minWidth = '200px';
+            el.style.padding = '10px 14px';
+            el.style.borderRadius = '8px';
+            el.style.color = '#fff';
+            el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 200ms ease, transform 200ms ease';
+            el.style.transform = 'translateY(8px)';
+
+            if (type === 'success') el.style.background = 'linear-gradient(90deg,#28a745,#20c997)';
+            else if (type === 'error') el.style.background = 'linear-gradient(90deg,#dc3545,#c82333)';
+            else if (type === 'warn') el.style.background = 'linear-gradient(90deg,#ffc107,#ff9800)';
+            else el.style.background = 'linear-gradient(90deg,#343a40,#495057)';
+
+            container.appendChild(el);
+            // animate in
+            requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
+
+            setTimeout(() => {
+                el.style.opacity = '0'; el.style.transform = 'translateY(8px)';
+                setTimeout(() => { el.remove(); }, 220);
+            }, timeout);
+        } catch (e) {
+            console.warn('showToast error', e);
+        }
+    }
+
     // Undo / tentative-delete helpers
     let currentUndoEl = null;
     function showUndo(message, undoFn, timeoutMs = 7000) {
@@ -267,7 +313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // header actions
             addItemBtn.addEventListener('click', () => {
                 const name = prompt('Nama item baru:'); if (!name) return;
-                const price = parseInt(prompt('Harga (angka):','0'),10); if (Number.isNaN(price)) { alert('Harga tidak valid'); return; }
+                const price = parseInt(prompt('Harga (angka):','0'),10); if (Number.isNaN(price)) { showToast('Harga tidak valid', 'error'); return; }
                 menus[cat].push({ name, price });
                 persist(menus); render();
             });
@@ -289,9 +335,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     addCategoryBtn.addEventListener('click', () => {
         const name = newCategoryName.value && newCategoryName.value.trim();
-        if (!name) { alert('Isi nama kategori'); return; }
+        if (!name) { showToast('Isi nama kategori', 'error'); return; }
         const menus = loadMenus();
-        if (menus[name]) { alert('Kategori sudah ada'); return; }
+        if (menus[name]) { showToast('Kategori sudah ada', 'error'); return; }
         menus[name] = [];
         persist(menus); newCategoryName.value=''; render();
     });
@@ -302,9 +348,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const name = addItemName.value && addItemName.value.trim();
         const price = parseInt(addItemPrice.value, 10);
         const out = !!addItemOut.checked;
-        if (!cat) { alert('Pilih kategori tujuan'); return; }
-        if (!name) { alert('Isi nama item'); return; }
-        if (Number.isNaN(price)) { alert('Harga tidak valid'); return; }
+        if (!cat) { showToast('Pilih kategori tujuan', 'error'); return; }
+        if (!name) { showToast('Isi nama item', 'error'); return; }
+        if (Number.isNaN(price)) { showToast('Harga tidak valid', 'error'); return; }
         const menus = loadMenus();
         if (!menus[cat]) menus[cat] = [];
         menus[cat].push({ name, price, outOfStock: out });
@@ -317,11 +363,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     createMenuBtn.addEventListener('click', () => {
         const cat = createMenuCategory.value && createMenuCategory.value.trim();
         const raw = createMenuItems.value || '';
-        if (!cat) { alert('Isi nama kategori baru'); return; }
+        if (!cat) { showToast('Isi nama kategori baru', 'error'); return; }
         const menus = loadMenus();
         if (menus[cat]) { if (!confirm('Kategori sudah ada. Tambahkan item baru ke kategori yang ada?')) return; }
         const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        if (lines.length === 0) { alert('Tambahkan minimal satu baris item dengan format yang benar.'); return; }
+        if (lines.length === 0) { showToast('Tambahkan minimal satu baris item dengan format yang benar.', 'error'); return; }
         const parsedItems = [];
         for (const line of lines) {
             // accept '|' or ',' sebagai delimiter
@@ -331,11 +377,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 name = parts[0]; priceRaw = parts[1]; outRaw = parts[2];
             } else {
                 const parts2 = line.split(',').map(s=>s.trim());
-                if (parts2.length < 2) { alert('Format baris salah: ' + line); return; }
+                if (parts2.length < 2) { showToast('Format baris salah: ' + line, 'error'); return; }
                 name = parts2[0]; priceRaw = parts2[1]; outRaw = parts2[2];
             }
             const price = parseInt(priceRaw.replace(/[^0-9]/g, ''), 10);
-            if (!name || Number.isNaN(price)) { alert('Nama atau harga tidak valid pada baris: ' + line); return; }
+            if (!name || Number.isNaN(price)) { showToast('Nama atau harga tidak valid pada baris: ' + line, 'error'); return; }
             const outOfStock = String(outRaw || '').toLowerCase() === 'true';
             parsedItems.push({ name, price, outOfStock });
         }
@@ -344,7 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         persist(menus);
         createMenuCategory.value=''; createMenuItems.value='';
         render();
-        alert('Kategori dan item berhasil dibuat.');
+        showToast('Kategori dan item berhasil dibuat.', 'success');
     });
 
     saveBtn.addEventListener('click', async () => {
@@ -353,16 +399,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (typeof saveMenusToAPI === 'function') {
                 const ok = await saveMenusToAPI(menus);
                 if (ok) {
-                    alert('✅ Perubahan berhasil disimpan ke server.');
+                    showToast('Perubahan berhasil disimpan ke server.', 'success');
                 } else {
-                    alert('⚠️ Gagal menyimpan ke server. Perubahan tersimpan lokal.');
+                    showToast('Gagal menyimpan ke server. Perubahan tersimpan lokal.', 'warn');
                 }
             } else {
-                alert('Perubahan disimpan secara lokal. (No API available)');
+                showToast('Perubahan disimpan secara lokal. (No API available)', 'info');
             }
         } catch (e) {
             console.error('Save to API failed', e);
-            alert('⚠️ Terjadi error saat menyimpan ke server. Perubahan tersimpan lokal.');
+            showToast('Terjadi error saat menyimpan ke server. Perubahan tersimpan lokal.', 'error');
         }
     });
 
@@ -371,7 +417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // try to remove siteMenus so script will use bundled defaults on reload
         localStorage.removeItem('siteMenus');
         localStorage.setItem('siteMenusUpdatedAt', String(Date.now()));
-        alert('Reset selesai. Silakan buka halaman utama untuk melihat perubahan.');
+        showToast('Reset selesai. Silakan buka halaman utama untuk melihat perubahan.', 'success');
         render();
     });
 

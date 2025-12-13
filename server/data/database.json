@@ -247,6 +247,23 @@
       "completed": false,
       "createdAt": 1765587779158,
       "id": 17
+    },
+    {
+      "buyerName": "ACCE",
+      "tableNumber": "2",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "completed": false,
+      "createdAt": 1765588780704,
+      "id": 18
     }
   ]
 }

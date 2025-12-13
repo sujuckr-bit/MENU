@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Global toast helper (used to replace alert())
+    function showToast(message, type = 'info', timeout = 3000) {
+        try {
+            const colors = {
+                success: ['#28a745', '#20c997'],
+                error: ['#dc3545', '#c82333'],
+                warn: ['#ffc107', '#ffb703'],
+                info: ['#17a2b8', '#0dcaf0']
+            };
+            const bg = (colors[type] && colors[type][0]) || '#17a2b8';
+            const text = document.createElement('div');
+            text.textContent = message;
+            text.style.position = 'fixed';
+            text.style.right = '20px';
+            text.style.bottom = '20px';
+            text.style.background = bg;
+            text.style.color = 'white';
+            text.style.padding = '10px 14px';
+            text.style.borderRadius = '8px';
+            text.style.zIndex = '9999';
+            text.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+            document.body.appendChild(text);
+            setTimeout(() => { try { text.remove(); } catch (e) {} }, timeout);
+        } catch (e) { console.error('showToast error', e); }
+    }
     // Tunggu XLSX library ter-load
     function waitForXLSX(callback, attempt = 0) {
         if (typeof XLSX !== 'undefined') {
@@ -7,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => waitForXLSX(callback, attempt + 1), 100);
         } else {
             console.error('XLSX library gagal ter-load');
-            alert('❌ Library Excel gagal ter-load. Refresh halaman.');
+            showToast('❌ Library Excel gagal ter-load. Refresh halaman.', 'error');
         }
 
         // Realtime handlers (if realtime client loaded)
@@ -258,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const editingOrder = JSON.parse(editingJson);
                 if (!clientIsAdmin()) {
-                    alert('Hanya admin yang dapat mengedit pesanan. Silakan login sebagai admin.');
+                    showToast('Hanya admin yang dapat mengedit pesanan. Silakan login sebagai admin.', 'error');
                     localStorage.removeItem('editingOrder');
                 } else {
                     editingId = editingOrder.id || null;
@@ -357,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.addEventListener('click', (e) => {
                     e.preventDefault();
                     if (res.outOfStock) {
-                        alert('Item ini sedang habis/tidak tersedia.');
+                        showToast('Item ini sedang habis/tidak tersedia.', 'error');
                         return;
                     }
                     selectSearchResult(res.idx);
@@ -371,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function selectSearchResult(menuIdx) {
             const cat = categorySelect ? categorySelect.value : '';
             if (!cat || !menus[cat] || !menus[cat][menuIdx]) {
-                alert('Item tidak valid atau kategori belum dipilih.');
+                showToast('Item tidak valid atau kategori belum dipilih.', 'error');
                 return;
             }
             
@@ -414,13 +439,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const qty = parseInt(qtyInput.value, 10);
 
             if (!cat || idx === "" || !Number.isInteger(qty) || qty <= 0) {
-                alert('Pilih kategori, item dan masukkan jumlah valid (>0).');
+                showToast('Pilih kategori, item dan masukkan jumlah valid (>0).', 'error');
                 return;
             }
 
             const itemObj = menus[cat][idx];
             if (itemObj.outOfStock) {
-                alert('Item ini sedang habis/tidak dapat dipesan.');
+                showToast('Item ini sedang habis/tidak dapat dipesan.', 'error');
                 return;
             }
             const itemName = itemObj.name;
@@ -624,17 +649,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tableNumber = tableSelect ? (tableSelect.value || '') : '';
 
                 if (!buyerName) {
-                    alert('❌ Masukkan nama pembeli.');
+                    showToast('❌ Masukkan nama pembeli.', 'error');
                     if (buyerInput) buyerInput.focus();
                     return;
                 }
                 if (!tableNumber) {
-                    alert('❌ Pilih nomor meja atau Takeaway.');
+                    showToast('❌ Pilih nomor meja atau Takeaway.', 'error');
                     if (tableSelect) tableSelect.focus();
                     return;
                 }
                 if (!cart.length) {
-                    alert('❌ Keranjang kosong. Tambahkan item ke keranjang.');
+                    showToast('❌ Keranjang kosong. Tambahkan item ke keranjang.', 'error');
                     return;
                 }
 
@@ -650,9 +675,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const prevCompleted = orders[idx].completed || false;
                             orders[idx] = { id: editingId, buyerName, tableNumber, items: clonedItems, total, completed: prevCompleted };
                             saveOrders(orders);
-                            alert('✅ Perubahan pesanan berhasil disimpan!');
+                            showToast('✅ Perubahan pesanan berhasil disimpan!', 'success');
                         } else {
-                            alert('❌ Pesanan yang diedit tidak ditemukan.');
+                            showToast('❌ Pesanan yang diedit tidak ditemukan.', 'error');
                         }
                         editingId = null;
                         if (submitBtn) submitBtn.textContent = initialSubmitText;
@@ -665,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Also save to API
                         await saveOrderViaAPI(orderData);
                         
-                        alert('✅ Pesanan berhasil disimpan!');
+                        showToast('✅ Pesanan berhasil disimpan!', 'success');
                     }
 
                     orderForm.reset();
@@ -678,7 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (tableSelect) tableSelect.value = '';
                 } catch (err) {
                     console.error('Error:', err);
-                    alert('❌ Terjadi kesalahan: ' + err.message);
+                    showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
                 }
             });
         }
@@ -806,7 +831,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function deleteOrder(id) {
-            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat menghapus pesanan.'); return; }
+            if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat menghapus pesanan.', 'error'); return; }
             if (!confirm('Hapus pesanan ini?')) return;
             const orders = getOrders().filter(order => order.id !== id);
             saveOrders(orders);
@@ -814,7 +839,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function editOrder(id) {
-            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat mengedit pesanan.'); return; }
+            if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat mengedit pesanan.', 'error'); return; }
             const orders = getOrders();
             const order = orders.find(o => o.id === id);
             if (!order) return;
@@ -825,11 +850,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function completeOrder(id) {
-            if (!clientIsAdmin()) { alert('Akses ditolak: hanya admin yang dapat menandai selesai.'); return; }
+            if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat menandai selesai.', 'error'); return; }
             if (!confirm('Tandai pesanan ini sebagai selesai?')) return;
             const orders = getOrders();
             const idx = orders.findIndex(o => o.id === id);
-            if (idx === -1) { alert('Pesanan tidak ditemukan.'); return; }
+            if (idx === -1) { showToast('Pesanan tidak ditemukan.', 'error'); return; }
             orders[idx].completed = true;
             saveOrders(orders);
             loadOrders();
@@ -845,7 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Orders:', orders);
 
                     if (!orders || orders.length === 0) {
-                        alert('❌ Tidak ada pesanan untuk diekspor. Buat pesanan dulu di halaman "Pesan Sekarang".');
+                        showToast('❌ Tidak ada pesanan untuk diekspor. Buat pesanan dulu di halaman "Pesan Sekarang".', 'error');
                         return;
                     }
 
@@ -916,11 +941,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Download file
                         const fileName = `Pesanan_BAZAR_HmI_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`;
                         XLSX.writeFile(wb, fileName);
-                        alert('✅ Data berhasil diekspor ke Excel!\nFile: ' + fileName);
+                        showToast('✅ Data berhasil diekspor ke Excel!\nFile: ' + fileName, 'success');
                         
                     } catch (err) {
                         console.error('Export error:', err);
-                        alert('❌ Error saat export: ' + err.message);
+                        showToast('❌ Error saat export: ' + err.message, 'error');
                     }
                 });
             });
@@ -983,7 +1008,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
 
                             if (importedOrders.length === 0) {
-                                alert('❌ File Excel tidak memiliki data yang valid.');
+                                showToast('❌ File Excel tidak memiliki data yang valid.', 'error');
                                 return;
                             }
 
@@ -994,12 +1019,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             const mergedOrders = [...existingOrders, ...importedOrders];
                             saveOrders(mergedOrders);
 
-                            alert(`✅ ${importedOrders.length} pesanan berhasil diimpor!`);
+                            showToast(`✅ ${importedOrders.length} pesanan berhasil diimpor!`, 'success');
                             loadOrders();
                             importFile.value = '';
                         } catch (err) {
                             console.error('Import error:', err);
-                            alert('❌ Gagal mengimpor file. Pastikan format Excel benar.');
+                            showToast('❌ Gagal mengimpor file. Pastikan format Excel benar.', 'error');
                         }
                     };
                     reader.readAsArrayBuffer(file);
@@ -1161,23 +1186,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Validation
                     if (newPassword.length < 6) {
-                        alert('❌ Password minimal 6 karakter');
+                        showToast('❌ Password minimal 6 karakter', 'error');
                         return;
                     }
 
                     if (newPassword !== confirmPassword) {
-                        alert('❌ Password tidak cocok');
+                        showToast('❌ Password tidak cocok', 'error');
                         return;
                     }
 
                     // Change password
                     try {
                         await setAdminPassword(newPassword);
-                        alert('✅ Password berhasil diubah! Silakan login kembali.');
+                        showToast('✅ Password berhasil diubah! Silakan login kembali.', 'success');
                         logoutAdmin();
                         window.location.href = 'admin-login.html';
                     } catch (error) {
-                        alert('❌ Terjadi kesalahan: ' + error.message);
+                        showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
                     }
                 });
             }
@@ -1186,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 logoutBtn.addEventListener('click', function() {
                     if (confirm('⚠️ Apakah Anda yakin ingin logout?')) {
                         logoutAdmin();
-                        alert('✅ Logout berhasil');
+                        showToast('✅ Logout berhasil', 'success');
                         window.location.href = 'admin-login.html';
                     }
                 });

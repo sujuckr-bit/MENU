@@ -32,12 +32,30 @@
                 <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
                 <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
             </a>
-            <div class="ms-auto d-flex align-items-center gap-3">
-                <div id="statusIndicator" style="font-size: 12px;">
-                    <span class="status-indicator status-disconnected"></span>
-                    <span id="statusText">Connecting...</span>
-                </div>
-                <a href="admin-login.html" class="btn btn-sm btn-outline-danger">Logout</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarAdmin">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html" style="color: #495057; font-weight: 500;">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pesanan-saya.html" style="color: #495057; font-weight: 500;">Pesanan Saya</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <div id="statusIndicator" style="font-size: 12px; display: flex; align-items: center; gap: 6px;">
+                            <span class="status-indicator status-disconnected" style="width: 10px; height: 10px; border-radius: 50%; background: #dc3545;"></span>
+                            <span id="statusText" style="color: #6c757d;">Connecting...</span>
+                        </div>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="admin-login.html" class="btn btn-sm btn-danger px-3" style="border-radius: 6px; color: white;">🚪 Logout</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -87,9 +105,24 @@
     <script src="assets/js/realtime.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
+        // Fallback toast helper for pages that run inline scripts before global script defines it
+        if (typeof showToast !== 'function') {
+            window.showToast = function(message, type = 'info', timeout = 3000) {
+                try {
+                    const bg = (type === 'success') ? '#28a745' : (type === 'error' ? '#dc3545' : '#17a2b8');
+                    const el = document.createElement('div');
+                    el.textContent = message;
+                    el.style.position = 'fixed'; el.style.right = '20px'; el.style.bottom = '20px'; el.style.background = bg; el.style.color = 'white'; el.style.padding = '10px 14px'; el.style.borderRadius = '8px'; el.style.zIndex = '9999'; el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+                    document.body.appendChild(el);
+                    setTimeout(()=>{ try{ el.remove(); }catch(e){} }, timeout);
+                } catch (e) { console.error('toast fallback error', e); }
+            };
+        }
+    </script>
+    <script>
         // Check admin
         if (!isAdmin()) {
-            alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
+            showToast('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.', 'error');
             window.location.href = 'admin-login.html';
         }
 
@@ -154,7 +187,7 @@
             const price = document.getElementById('addPrice').value;
 
             if (!category || !name || !price) {
-                alert('❌ Lengkapi semua field');
+                showToast('❌ Lengkapi semua field', 'error');
                 return;
             }
 
@@ -167,11 +200,11 @@
             });
 
             if (result.ok) {
-                alert('✅ Menu item berhasil ditambahkan');
+                showToast('✅ Menu item berhasil ditambahkan', 'success');
                 document.getElementById('addMenuForm').reset();
                 loadMenus();
             } else {
-                alert('❌ Gagal menambahkan menu item');
+                showToast('❌ Gagal menambahkan menu item', 'error');
             }
         });
 
@@ -191,10 +224,10 @@
             });
 
             if (result.ok) {
-                alert('✅ Menu item berhasil diubah');
+                showToast('✅ Menu item berhasil diubah', 'success');
                 loadMenus();
             } else {
-                alert('❌ Gagal mengubah menu item');
+                showToast('❌ Gagal mengubah menu item', 'error');
             }
         }
 
@@ -209,22 +242,32 @@
             });
 
             if (result.ok) {
-                alert('✅ Menu item berhasil dihapus');
+                showToast('✅ Menu item berhasil dihapus', 'success');
                 loadMenus();
             } else {
-                alert('❌ Gagal menghapus menu item');
+                showToast('❌ Gagal menghapus menu item', 'error');
             }
         }
 
         // Real-time updates
         realtime.on('connected', () => {
-            document.getElementById('statusIndicator').querySelector('.status-indicator').className = 'status-indicator status-connected';
-            document.getElementById('statusText').textContent = 'Connected';
+            const statusDiv = document.getElementById('statusIndicator');
+            if (statusDiv) {
+                const indicator = statusDiv.querySelector('[style*="width"]');
+                if (indicator) indicator.style.background = '#28a745';
+                document.getElementById('statusText').textContent = '✅ Connected';
+                document.getElementById('statusText').style.color = '#28a745';
+            }
         });
 
         realtime.on('disconnected', () => {
-            document.getElementById('statusIndicator').querySelector('.status-indicator').className = 'status-indicator status-disconnected';
-            document.getElementById('statusText').textContent = 'Disconnected';
+            const statusDiv = document.getElementById('statusIndicator');
+            if (statusDiv) {
+                const indicator = statusDiv.querySelector('[style*="width"]');
+                if (indicator) indicator.style.background = '#dc3545';
+                document.getElementById('statusText').textContent = '⚠️ Disconnected';
+                document.getElementById('statusText').style.color = '#dc3545';
+            }
         });
 
         realtime.on('menus_updated', (data) => {

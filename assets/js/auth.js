@@ -81,12 +81,12 @@ function handleAdminLoginForm(formId, inputId, onSuccessUrl) {
             const ok = await loginAdmin(pwd);
             if (ok) {
                 if (onSuccessUrl) window.location.href = onSuccessUrl;
-                else alert('Login admin berhasil');
+                else showToast('Login admin berhasil', 'success');
             } else {
-                alert('Password salah.');
+                showToast('Password salah.', 'error');
             }
         } catch (err) {
-            alert('Login gagal: ' + err.message);
+            showToast('Login gagal: ' + err.message, 'error');
         }
     });
 }

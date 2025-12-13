@@ -24,8 +24,18 @@
                 <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
                 <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
             </a>
-            <div class="ms-auto">
-                <a href="admin-panel.html" class="btn btn-sm btn-outline-secondary">← Kembali</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarEdit">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarEdit">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a href="admin-panel.html" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">← Kembali ke Menu Manager</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a href="admin-login.html" class="btn btn-sm btn-danger px-3" style="border-radius: 6px; color: white;">🚪 Logout</a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -76,8 +86,15 @@
     <script>
         // Check admin
         if (!isAdmin()) {
-            alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
-            window.location.href = 'admin-login.html';
+            // show toast then redirect
+            (function(){
+                const m = 'Akses ditolak. Silakan login sebagai admin terlebih dahulu.';
+                const c = document.createElement('div');
+                c.textContent = m;
+                c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
+                document.body.appendChild(c);
+                setTimeout(()=>{ c.remove(); window.location.href='admin-login.html'; },700);
+            })();
         }
 
         // Get query parameters
@@ -86,8 +103,11 @@
         const itemIndex = parseInt(params.get('idx'), 10);
 
         if (!category || isNaN(itemIndex)) {
-            alert('❌ Parameter tidak valid');
-            window.location.href = 'admin-panel.html';
+            const m = 'Parameter tidak valid';
+            const c = document.createElement('div');
+            c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
+            document.body.appendChild(c);
+            setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
         }
 
         const itemNameEl = document.getElementById('itemName');
@@ -103,8 +123,11 @@
             try {
                 menus = loadMenusFromStorage();
                 if (!menus[category] || !menus[category][itemIndex]) {
-                    alert('❌ Item tidak ditemukan');
-                    window.location.href = 'admin-panel.html';
+                    const m = 'Item tidak ditemukan';
+                    const c = document.createElement('div');
+                    c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
+                    document.body.appendChild(c);
+                    setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
                     return;
                 }
 
@@ -114,8 +137,11 @@
                 itemStatusEl.value = item.outOfStock ? '1' : '0';
             } catch (e) {
                 console.error('Error loading item:', e);
-                alert('❌ Gagal memuat item');
-                window.location.href = 'admin-panel.html';
+                const m = 'Gagal memuat item';
+                const c = document.createElement('div');
+                c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
+                document.body.appendChild(c);
+                setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
             }
         }
 
@@ -158,21 +184,18 @@
             };
 
             if (!updatedItem.name) {
-                alert('❌ Nama item tidak boleh kosong');
-                return;
+                const c = document.createElement('div'); c.textContent = 'Nama item tidak boleh kosong'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>c.remove(),3000); return;
             }
 
             if (isNaN(updatedItem.price) || updatedItem.price < 0) {
-                alert('❌ Harga tidak valid');
-                return;
+                const c = document.createElement('div'); c.textContent = 'Harga tidak valid'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>c.remove(),3000); return;
             }
 
             // Update item
             menus[category][itemIndex] = updatedItem;
             saveMenus(menus);
 
-            alert('✅ Item berhasil diperbarui!');
-            window.location.href = 'admin-panel.html';
+            const c = document.createElement('div'); c.textContent = 'Item berhasil diperbarui!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
         });
 
         // Handle delete
@@ -181,9 +204,7 @@
 
             menus[category].splice(itemIndex, 1);
             saveMenus(menus);
-
-            alert('✅ Item berhasil dihapus!');
-            window.location.href = 'admin-panel.html';
+            const c = document.createElement('div'); c.textContent = 'Item berhasil dihapus!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
         });
 
         // Load item on page load
