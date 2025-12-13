@@ -120,39 +120,8 @@
             }
         });
 
-        // Setup admin login dengan timeout lebih lama untuk mobile
-        const form = document.getElementById('adminLoginForm');
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const input = document.getElementById('adminPassword');
-            const pwd = input ? input.value : '';
-            const btn = form.querySelector('button[type="submit"]');
-            const originalText = btn.textContent;
-            
-            try {
-                // Disable button dan tampilkan loading state
-                btn.disabled = true;
-                btn.textContent = '⏳ Memproses...';
-                
-                const ok = await loginAdmin(pwd);
-                if (ok) {
-                    showToast('✅ Login admin berhasil!', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'daftar.html';
-                    }, 500);
-                } else {
-                    showToast('❌ Password salah. Gunakan password default: admin123', 'error');
-                    input.value = '';
-                    input.focus();
-                }
-            } catch (err) {
-                console.error('Login error:', err);
-                showToast('❌ Login gagal: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        });
+        // Setup admin login form
+        handleAdminLoginForm('adminLoginForm', 'adminPassword', 'daftar.html');
     </script>
 </body>
 </html>

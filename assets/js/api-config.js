@@ -1,13 +1,17 @@
 // API Configuration
-// Untuk support mobile/Android: gunakan IP server yang sama, bukan localhost
+// Support untuk: localhost, IP address, domain (HTTP & HTTPS)
 function getAPIBaseUrl() {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        // Desktop/local: gunakan localhost
+    const protocol = window.location.protocol; // 'https:' atau 'http:'
+    const hostname = window.location.hostname;
+    
+    // Development local
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return 'http://localhost:3000';
-    } else {
-        // Mobile/Android: gunakan IP server yang sama
-        return `http://${window.location.hostname}:3000`;
     }
+    
+    // Production dengan domain atau IP
+    // Gunakan protokol yang sama (HTTPS jika akses via HTTPS)
+    return `${protocol}//${hostname}:3000`;
 }
 
 const API_CONFIG = {

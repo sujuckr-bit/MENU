@@ -242,28 +242,12 @@
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     const pwd = document.getElementById('modalAdminPassword').value || '';
-                    const btn = form.querySelector('button[type="submit"]');
-                    const originalText = btn.textContent;
-                    
-                    try {
-                        btn.disabled = true;
-                        btn.textContent = '⏳ Memproses...';
-                        
-                        const ok = await loginAdmin(pwd);
-                        if (ok) {
-                            showToast('✅ Login berhasil!', 'success');
-                            modal.hide();
-                            setTimeout(() => location.reload(), 500);
-                        } else {
-                            showToast('❌ Password salah', 'error');
-                            document.getElementById('modalAdminPassword').value = '';
-                        }
-                    } catch (err) {
-                        console.error('Login error:', err);
-                        showToast('❌ Login gagal: ' + err.message, 'error');
-                    } finally {
-                        btn.disabled = false;
-                        btn.textContent = originalText;
+                    const ok = await loginAdmin(pwd);
+                    if (ok) {
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        showToast('Password salah.', 'error');
                     }
                 });
             }
