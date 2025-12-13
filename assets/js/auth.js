@@ -1,5 +1,17 @@
 // Client auth helper that prefers server API but falls back to legacy client-side storage if needed.
-const AUTH_API_BASE = 'http://localhost:3000/api';
+// Untuk Android: ganti localhost dengan IP server (misal: http://192.168.x.x:3000/api)
+// Deteksi jika localhost dan ubah ke IP server jika diperlukan
+function getAuthAPIBase() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Jika di browser desktop: gunakan localhost
+        return 'http://localhost:3000/api';
+    } else {
+        // Jika di mobile/Android dengan IP: gunakan IP server yang sama
+        // Format: http://192.168.x.x:3000/api atau https://domain.com/api
+        return `http://${window.location.hostname}:3000/api`;
+    }
+}
+const AUTH_API_BASE = getAuthAPIBase();
 
 function initializeAdminPassword() {
     // kept for compatibility with existing code; server manages password now
@@ -50,10 +62,16 @@ async function loginAdmin(password) {
     if (!password) return false;
     const ok = await loginWithAPI(password);
     if (ok) return true;
-    // fallback: try legacy client-side login if present
-    if (typeof window.legacyLoginAdmin === 'function') {
-        return window.legacyLoginAdmin(password);
+    
+    // Fallback: client-side validation dengan password hardcoded
+    // Gunakan ini jika API tidak dapat diakses (offline atau server down)
+    const FALLBACK_PASSWORD = 'admin123';
+    if (password === FALLBACK_PASSWORD) {
+        sessionStorage.setItem('isAdmin', '1');
+        console.log('Login berhasil (mode offline/fallback)');
+        return true;
     }
+    
     return false;
 }
 

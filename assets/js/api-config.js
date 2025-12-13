@@ -1,6 +1,17 @@
 // API Configuration
+// Untuk support mobile/Android: gunakan IP server yang sama, bukan localhost
+function getAPIBaseUrl() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Desktop/local: gunakan localhost
+        return 'http://localhost:3000';
+    } else {
+        // Mobile/Android: gunakan IP server yang sama
+        return `http://${window.location.hostname}:3000`;
+    }
+}
+
 const API_CONFIG = {
-    baseUrl: 'http://localhost:3000',
+    baseUrl: getAPIBaseUrl(),
     endpoints: {
         login: '/api/login',
         logout: '/api/logout',
