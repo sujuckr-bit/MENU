@@ -1,17 +1,15 @@
 // Client auth helper that prefers server API but falls back to legacy client-side storage if needed.
-// Support untuk: localhost, IP address, domain (HTTP & HTTPS)
+// Untuk Android: ganti localhost dengan IP server (misal: http://192.168.x.x:3000/api)
+// Deteksi jika localhost dan ubah ke IP server jika diperlukan
 function getAuthAPIBase() {
-    const protocol = window.location.protocol; // 'https:' atau 'http:'
-    const hostname = window.location.hostname;
-    
-    // Development local
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Jika di browser desktop: gunakan localhost
         return 'http://localhost:3000/api';
+    } else {
+        // Jika di mobile/Android dengan IP: gunakan IP server yang sama
+        // Format: http://192.168.x.x:3000/api atau https://domain.com/api
+        return `http://${window.location.hostname}:3000/api`;
     }
-    
-    // Production dengan domain atau IP
-    // Gunakan protokol yang sama (HTTPS jika akses via HTTPS)
-    return `${protocol}//${hostname}:3000/api`;
 }
 const AUTH_API_BASE = getAuthAPIBase();
 
