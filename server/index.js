@@ -66,12 +66,114 @@ async function main() {
     res.json(menus);
   });
 
+  // Validate menu data structure
+  function validateMenus(data) {
+    if (!data || typeof data !== 'object') {
+      return { valid: false, error: 'Menu data must be an object' };
+    }
+    
+    // Check if it's an empty object (allowed)
+    if (Object.keys(data).length === 0) {
+      return { valid: true };
+    }
+    
+    // Validate each category and its items
+    for (const [category, items] of Object.entries(data)) {
+      // Category name must be non-empty string
+      if (typeof category !== 'string' || category.trim() === '') {
+        return { valid: false, error: `Invalid category name: "${category}"` };
+      }
+      
+      // Items must be an array
+      if (!Array.isArray(items)) {
+        return { valid: false, error: `Category "${category}": items must be an array, got ${typeof items}` };
+      }
+      
+      // Validate each item
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        
+        if (!item || typeof item !== 'object') {
+          return { valid: false, error: `Category "${category}": item ${i} is not a valid object` };
+        }
+        
+        // Required fields
+        if (!item.name || typeof item.name !== 'string' || item.name.trim() === '') {
+          return { valid: false, error: `Category "${category}": item ${i} missing or invalid name` };
+        }
+        
+        if (item.price === undefined || item.price === null) {
+          return { valid: false, error: `Category "${category}": item "${item.name}" missing price` };
+        }
+        
+        const price = Number(item.price);
+        if (Number.isNaN(price) || price < 0) {
+          return { valid: false, error: `Category "${category}": item "${item.name}" has invalid price: ${item.price}` };
+        }
+        
+        // Optional: outOfStock should be boolean if present
+        if (item.outOfStock !== undefined && typeof item.outOfStock !== 'boolean') {
+          return { valid: false, error: `Category "${category}": item "${item.name}" outOfStock must be boolean` };
+        }
+      }
+    }
+    
+    return { valid: true };
+  }
+
+  // Log function for audit trail
+  function logMenuChange(username, action, details) {
+    const timestamp = new Date().toISOString();
+    const logEntry = { timestamp, username, action, details };
+    console.log(`[MENU AUDIT] ${timestamp} | ${username} | ${action} | ${JSON.stringify(details)}`);
+  }
+
   app.post('/api/menus', async (req, res) => {
-    if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
+    if (!req.session.isAdmin) {
+      console.warn('[AUTH] Unauthorized menu update attempt');
+      return res.status(403).json({ error: 'Unauthorized: admin session required' });
+    }
+    
     const data = req.body || {};
-    db.setMenus(data);
-    broadcastUpdate('menus_updated', data);
-    res.json({ ok: true });
+    const username = req.session.username || 'unknown';
+    
+    // Validate incoming data
+    const validation = validateMenus(data);
+    if (!validation.valid) {
+      console.warn(`[VALIDATION] Menu update rejected: ${validation.error}`);
+      return res.status(400).json({ 
+        ok: false, 
+        error: validation.error,
+        details: 'Please check the menu data format and try again'
+      });
+    }
+    
+    try {
+      // Get current menus to log changes
+      const oldMenus = db.getMenus();
+      
+      // Save to database
+      db.setMenus(data);
+      
+      // Log the change
+      logMenuChange(username, 'MENUS_UPDATE', {
+        categoriesCount: Object.keys(data).length,
+        itemsCount: Object.values(data).reduce((sum, items) => sum + (Array.isArray(items) ? items.length : 0), 0),
+        timestamp: Date.now()
+      });
+      
+      // Broadcast to all connected clients
+      broadcastUpdate('menus_updated', data);
+      
+      res.json({ ok: true, message: 'Menus updated successfully' });
+    } catch (e) {
+      console.error('[ERROR] Failed to update menus:', e.message);
+      res.status(500).json({ 
+        ok: false, 
+        error: 'Server error while updating menus',
+        details: e.message 
+      });
+    }
   });
 
   // Menu CRUD - Get menu category

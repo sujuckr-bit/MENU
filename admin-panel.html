@@ -98,24 +98,10 @@
     </div>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/toast.js"></script>
     <script src="assets/js/api-config.js"></script>
     <script src="assets/js/realtime.js"></script>
     <script src="assets/js/auth.js"></script>
-    <script>
-        // Fallback toast helper for pages that run inline scripts before global script defines it
-        if (typeof showToast !== 'function') {
-            window.showToast = function(message, type = 'info', timeout = 3000) {
-                try {
-                    const bg = (type === 'success') ? '#28a745' : (type === 'error' ? '#dc3545' : '#17a2b8');
-                    const el = document.createElement('div');
-                    el.textContent = message;
-                    el.style.position = 'fixed'; el.style.right = '20px'; el.style.bottom = '20px'; el.style.background = bg; el.style.color = 'white'; el.style.padding = '10px 14px'; el.style.borderRadius = '8px'; el.style.zIndex = '9999'; el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-                    document.body.appendChild(el);
-                    setTimeout(()=>{ try{ el.remove(); }catch(e){} }, timeout);
-                } catch (e) { console.error('toast fallback error', e); }
-            };
-        }
-    </script>
     <script>
         // Check admin
         if (!isAdmin()) {

@@ -1,3 +1,30 @@
+// --- Sync Status Indicator ---
+function updateSyncStatus(status) {
+    const statusEl = document.getElementById('syncStatus');
+    const textEl = document.getElementById('syncStatusText');
+    const spinnerEl = document.getElementById('syncSpinner');
+    
+    if (!statusEl) return; // element not yet loaded
+    
+    if (status === 'syncing') {
+        statusEl.className = 'badge bg-info';
+        textEl.textContent = '🔄 Menyimpan...';
+        if (spinnerEl) spinnerEl.style.display = 'inline-block';
+    } else if (status === 'online') {
+        statusEl.className = 'badge bg-success';
+        textEl.textContent = '🟢 Siap';
+        if (spinnerEl) spinnerEl.style.display = 'none';
+    } else if (status === 'offline') {
+        statusEl.className = 'badge bg-warning';
+        textEl.textContent = '🟡 Offline (queue)';
+        if (spinnerEl) spinnerEl.style.display = 'none';
+    } else if (status === 'error') {
+        statusEl.className = 'badge bg-danger';
+        textEl.textContent = '🔴 Error';
+        if (spinnerEl) spinnerEl.style.display = 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const isAdmin = sessionStorage.getItem('isAdmin') === '1';
     const notAuth = document.getElementById('notAuth');
@@ -111,60 +138,109 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Try to save to backend API (non-blocking)
         try {
             if (typeof saveMenusToAPI === 'function') {
+                updateSyncStatus('syncing');
                 saveMenusToAPI(menus).then(ok => {
                     console.log('[SYNC] saveMenusToAPI result:', ok);
-                }).catch(err => console.warn('[SYNC] saveMenusToAPI error:', err));
+                    if (!ok) {
+                        enqueuePendingSync(menus);
+                        updateSyncStatus('offline');
+                        showToast('Tidak dapat menghubungi server. Perubahan akan dicoba otomatis nanti.', 'warn');
+                    } else {
+                        updateSyncStatus('online');
+                    }
+                }).catch(err => {
+                    console.warn('[SYNC] saveMenusToAPI error:', err);
+                    enqueuePendingSync(menus);
+                    updateSyncStatus('offline');
+                    showToast('Gagal menyimpan ke server. Perubahan disimpan lokal dan akan dicoba kembali.', 'warn');
+                });
             }
         } catch (e) {
             console.warn('[SYNC] saveMenusToAPI exception', e);
         }
     }
 
-    // Small toast helper
-    function showToast(message, type = 'info', timeout = 3500) {
+    // --- Pending sync queue (robust retry when server unavailable) ---
+    const PENDING_KEY = 'pendingMenuSync';
+
+    function enqueuePendingSync(menus) {
         try {
-            let container = document.getElementById('toastContainer');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toastContainer';
-                container.style.position = 'fixed';
-                container.style.right = '20px';
-                container.style.bottom = '20px';
-                container.style.zIndex = '9999';
-                container.style.display = 'flex';
-                container.style.flexDirection = 'column';
-                container.style.gap = '10px';
-                document.body.appendChild(container);
-            }
-
-            const el = document.createElement('div');
-            el.textContent = message;
-            el.style.minWidth = '200px';
-            el.style.padding = '10px 14px';
-            el.style.borderRadius = '8px';
-            el.style.color = '#fff';
-            el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-            el.style.opacity = '0';
-            el.style.transition = 'opacity 200ms ease, transform 200ms ease';
-            el.style.transform = 'translateY(8px)';
-
-            if (type === 'success') el.style.background = 'linear-gradient(90deg,#28a745,#20c997)';
-            else if (type === 'error') el.style.background = 'linear-gradient(90deg,#dc3545,#c82333)';
-            else if (type === 'warn') el.style.background = 'linear-gradient(90deg,#ffc107,#ff9800)';
-            else el.style.background = 'linear-gradient(90deg,#343a40,#495057)';
-
-            container.appendChild(el);
-            // animate in
-            requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; });
-
-            setTimeout(() => {
-                el.style.opacity = '0'; el.style.transform = 'translateY(8px)';
-                setTimeout(() => { el.remove(); }, 220);
-            }, timeout);
+            const list = JSON.parse(localStorage.getItem(PENDING_KEY) || '[]');
+            list.push({ menus, ts: Date.now() });
+            localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+            // schedule a retry soon
+            scheduleRetry(2000);
         } catch (e) {
-            console.warn('showToast error', e);
+            console.error('enqueuePendingSync failed', e);
         }
     }
+
+    let retryTimer = null;
+    function scheduleRetry(delayMs = 3000) {
+        if (retryTimer) return; // already scheduled
+        retryTimer = setTimeout(async () => {
+            retryTimer = null;
+            await processPendingSyncs();
+        }, delayMs);
+    }
+
+    async function processPendingSyncs() {
+        try {
+            const raw = localStorage.getItem(PENDING_KEY);
+            if (!raw) return;
+            const list = JSON.parse(raw || '[]');
+            if (!Array.isArray(list) || list.length === 0) {
+                updateSyncStatus('online');
+                return;
+            }
+            
+            updateSyncStatus('syncing');
+            // try each in order; if one fails stop to avoid rapid retries
+            for (let i = 0; i < list.length; i++) {
+                const entry = list[i];
+                try {
+                    const ok = await saveMenusToAPI(entry.menus);
+                    if (ok) {
+                        // remove this entry
+                        list.splice(i, 1);
+                        i--; // adjust index
+                        localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+                        showToast('Perubahan yang tertunda berhasil disinkronkan ke server.', 'success');
+                    } else {
+                        // server still not accepting; schedule later
+                        updateSyncStatus('offline');
+                        scheduleRetry(5000);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('processPendingSyncs entry failed', e);
+                    updateSyncStatus('error');
+                    scheduleRetry(5000);
+                    return;
+                }
+            }
+            // all processed
+            localStorage.removeItem(PENDING_KEY);
+            updateSyncStatus('online');
+        } catch (e) {
+            console.error('processPendingSyncs failed', e);
+            updateSyncStatus('error');
+            scheduleRetry(5000);
+        }
+    }
+
+    // try pending syncs on network back online
+    window.addEventListener('online', () => {
+        processPendingSyncs().catch(()=>{});
+    });
+
+    // start background attempt at load
+    (function startPendingProcessor() {
+        // small delay to allow page initialization
+        setTimeout(() => { processPendingSyncs().catch(()=>{}); }, 1200);
+    })();
+
+    // showToast is provided by assets/js/toast.js
 
     // Undo / tentative-delete helpers
     let currentUndoEl = null;
@@ -393,22 +469,78 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast('Kategori dan item berhasil dibuat.', 'success');
     });
 
+    // Wrapper for direct sync with better error handling and details
+    async function saveMenusToAPIWithValidation(menus) {
+        try {
+            // First validate locally on client side
+            if (!menus || typeof menus !== 'object') {
+                throw new Error('Menu data is invalid');
+            }
+            
+            // Check for empty categories or invalid items
+            let issues = [];
+            for (const [cat, items] of Object.entries(menus)) {
+                if (!items || !Array.isArray(items)) {
+                    issues.push(`Category "${cat}": items not an array`);
+                }
+                for (const item of items || []) {
+                    if (!item.name || !item.price) {
+                        issues.push(`Item missing name or price in "${cat}"`);
+                    }
+                }
+            }
+            
+            if (issues.length > 0) {
+                return { ok: false, error: 'Validation failed: ' + issues.join('; ') };
+            }
+            
+            // Call server API
+            const result = await apiCall('menus', {
+                method: 'POST',
+                body: JSON.stringify(menus)
+            });
+            
+            if (!result.ok) {
+                // Extract error details from server response
+                const errorMsg = result.data?.error || 'Unknown error';
+                const details = result.data?.details || '';
+                const fullError = details ? `${errorMsg} (${details})` : errorMsg;
+                return { ok: false, error: fullError, status: result.status };
+            }
+            
+            return { ok: true };
+        } catch (e) {
+            return { ok: false, error: 'Network error: ' + e.message };
+        }
+    }
+
     saveBtn.addEventListener('click', async () => {
         const menus = loadMenus();
+        updateSyncStatus('syncing');
         try {
-            if (typeof saveMenusToAPI === 'function') {
-                const ok = await saveMenusToAPI(menus);
-                if (ok) {
+            if (typeof apiCall === 'function') {
+                const result = await saveMenusToAPIWithValidation(menus);
+                if (result.ok) {
+                    updateSyncStatus('online');
                     showToast('Perubahan berhasil disimpan ke server.', 'success');
                 } else {
-                    showToast('Gagal menyimpan ke server. Perubahan tersimpan lokal.', 'warn');
+                    console.warn('[SAVE] Server error:', result.error);
+                    updateSyncStatus('error');
+                    showToast('Gagal menyimpan: ' + (result.error || 'Unknown error') + '. Perubahan tersimpan lokal.', 'warn');
+                    // Try to enqueue for later
+                    enqueuePendingSync(menus);
+                    updateSyncStatus('offline');
                 }
             } else {
                 showToast('Perubahan disimpan secara lokal. (No API available)', 'info');
+                updateSyncStatus('online');
             }
         } catch (e) {
             console.error('Save to API failed', e);
+            updateSyncStatus('error');
             showToast('Terjadi error saat menyimpan ke server. Perubahan tersimpan lokal.', 'error');
+            enqueuePendingSync(menus);
+            updateSyncStatus('offline');
         }
     });
 

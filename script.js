@@ -1,29 +1,84 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Global toast helper (used to replace alert())
-    function showToast(message, type = 'info', timeout = 3000) {
-        try {
-            const colors = {
-                success: ['#28a745', '#20c997'],
-                error: ['#dc3545', '#c82333'],
-                warn: ['#ffc107', '#ffb703'],
-                info: ['#17a2b8', '#0dcaf0']
-            };
-            const bg = (colors[type] && colors[type][0]) || '#17a2b8';
-            const text = document.createElement('div');
-            text.textContent = message;
-            text.style.position = 'fixed';
-            text.style.right = '20px';
-            text.style.bottom = '20px';
-            text.style.background = bg;
-            text.style.color = 'white';
-            text.style.padding = '10px 14px';
-            text.style.borderRadius = '8px';
-            text.style.zIndex = '9999';
-            text.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-            document.body.appendChild(text);
-            setTimeout(() => { try { text.remove(); } catch (e) {} }, timeout);
-        } catch (e) { console.error('showToast error', e); }
+    // showToast is provided by assets/js/toast.js
+    
+    // Helper: Show confirmation with Undo toast (replaces confirm dialogs)
+    let pendingConfirmBar = null;
+    function showConfirmUndo(message, onConfirm, onCancel = null) {
+        // remove existing bar
+        if (pendingConfirmBar) { pendingConfirmBar.remove(); pendingConfirmBar = null; }
+        
+        const bar = document.createElement('div');
+        bar.style.position = 'fixed';
+        bar.style.left = '20px';
+        bar.style.right = '20px';
+        bar.style.bottom = '20px';
+        bar.style.zIndex = '9999';
+        bar.style.display = 'flex';
+        bar.style.justifyContent = 'space-between';
+        bar.style.alignItems = 'center';
+        bar.style.background = 'rgba(33,37,41,0.95)';
+        bar.style.color = 'white';
+        bar.style.padding = '12px 16px';
+        bar.style.borderRadius = '8px';
+        bar.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
+        
+        const txt = document.createElement('div');
+        txt.textContent = message;
+        txt.style.flex = '1';
+        
+        const btns = document.createElement('div');
+        btns.style.display = 'flex';
+        btns.style.gap = '8px';
+        
+        const yesBtn = document.createElement('button');
+        yesBtn.textContent = 'Ya';
+        yesBtn.style.background = '#dc3545';
+        yesBtn.style.color = 'white';
+        yesBtn.style.border = 'none';
+        yesBtn.style.padding = '6px 12px';
+        yesBtn.style.borderRadius = '4px';
+        yesBtn.style.cursor = 'pointer';
+        yesBtn.style.fontWeight = '600';
+        
+        const noBtn = document.createElement('button');
+        noBtn.textContent = 'Batal';
+        noBtn.style.background = '#6c757d';
+        noBtn.style.color = 'white';
+        noBtn.style.border = 'none';
+        noBtn.style.padding = '6px 12px';
+        noBtn.style.borderRadius = '4px';
+        noBtn.style.cursor = 'pointer';
+        noBtn.style.fontWeight = '600';
+        
+        btns.appendChild(yesBtn);
+        btns.appendChild(noBtn);
+        bar.appendChild(txt);
+        bar.appendChild(btns);
+        document.body.appendChild(bar);
+        pendingConfirmBar = bar;
+        
+        let done = false;
+        const timer = setTimeout(() => {
+            if (!done) { done = true; if (pendingConfirmBar) { pendingConfirmBar.remove(); pendingConfirmBar = null; } if (onCancel) onCancel(); }
+        }, 7000);
+        
+        yesBtn.addEventListener('click', () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            if (pendingConfirmBar) { pendingConfirmBar.remove(); pendingConfirmBar = null; }
+            try { onConfirm(); } catch (e) { console.error('Confirm action failed', e); }
+        });
+        
+        noBtn.addEventListener('click', () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            if (pendingConfirmBar) { pendingConfirmBar.remove(); pendingConfirmBar = null; }
+            if (onCancel) try { onCancel(); } catch (e) { console.error('Cancel action failed', e); }
+        });
     }
+    
     // Tunggu XLSX library ter-load
     function waitForXLSX(callback, attempt = 0) {
         if (typeof XLSX !== 'undefined') {
@@ -832,10 +887,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function deleteOrder(id) {
             if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat menghapus pesanan.', 'error'); return; }
-            if (!confirm('Hapus pesanan ini?')) return;
-            const orders = getOrders().filter(order => order.id !== id);
-            saveOrders(orders);
-            loadOrders();
+            const oldOrders = getOrders();
+            showConfirmUndo('Hapus pesanan ini?', () => {
+                const orders = oldOrders.filter(order => order.id !== id);
+                saveOrders(orders);
+                loadOrders();
+                showToast('Pesanan berhasil dihapus.', 'success');
+            });
         }
 
         function editOrder(id) {
@@ -851,13 +909,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function completeOrder(id) {
             if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat menandai selesai.', 'error'); return; }
-            if (!confirm('Tandai pesanan ini sebagai selesai?')) return;
-            const orders = getOrders();
-            const idx = orders.findIndex(o => o.id === id);
-            if (idx === -1) { showToast('Pesanan tidak ditemukan.', 'error'); return; }
-            orders[idx].completed = true;
-            saveOrders(orders);
-            loadOrders();
+            const oldOrders = getOrders();
+            showConfirmUndo('Tandai pesanan ini sebagai selesai?', () => {
+                const orders = getOrders();
+                const idx = orders.findIndex(o => o.id === id);
+                if (idx === -1) { showToast('Pesanan tidak ditemukan.', 'error'); return; }
+                orders[idx].completed = true;
+                saveOrders(orders);
+                loadOrders();
+                showToast('Pesanan ditandai selesai.', 'success');
+            });
         }
 
         // EXPORT TO EXCEL
@@ -1012,16 +1073,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return;
                             }
 
-                            const confirmation = confirm(`Akan mengimpor ${importedOrders.length} pesanan. Data existing akan ditambahkan, tidak diganti. Lanjutkan?`);
-                            if (!confirmation) return;
-
-                            const existingOrders = getOrders();
-                            const mergedOrders = [...existingOrders, ...importedOrders];
-                            saveOrders(mergedOrders);
-
-                            showToast(`✅ ${importedOrders.length} pesanan berhasil diimpor!`, 'success');
-                            loadOrders();
-                            importFile.value = '';
+                            showConfirmUndo(`Akan mengimpor ${importedOrders.length} pesanan. Data existing akan ditambahkan, tidak diganti. Lanjutkan?`, () => {
+                                const existingOrders = getOrders();
+                                const mergedOrders = [...existingOrders, ...importedOrders];
+                                saveOrders(mergedOrders);
+                                showToast(`✅ ${importedOrders.length} pesanan berhasil diimpor!`, 'success');
+                                loadOrders();
+                                importFile.value = '';
+                            });
                         } catch (err) {
                             console.error('Import error:', err);
                             showToast('❌ Gagal mengimpor file. Pastikan format Excel benar.', 'error');
@@ -1209,11 +1268,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
-                    if (confirm('⚠️ Apakah Anda yakin ingin logout?')) {
+                    showConfirmUndo('⚠️ Apakah Anda yakin ingin logout?', () => {
                         logoutAdmin();
                         showToast('✅ Logout berhasil', 'success');
                         window.location.href = 'admin-login.html';
-                    }
+                    });
                 });
             }
         }

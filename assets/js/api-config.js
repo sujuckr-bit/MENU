@@ -85,6 +85,14 @@ async function saveMenusToAPI(menus) {
         method: 'POST',
         body: JSON.stringify(menus)
     });
+    
+    if (!result.ok) {
+        // Log detailed error for debugging
+        const errorMsg = result.data?.error || 'Unknown error';
+        const details = result.data?.details || '';
+        console.error(`[SYNC ERROR] Status ${result.status}: ${errorMsg} ${details ? '— ' + details : ''}`);
+    }
+    
     return result.ok;
 }
 
