@@ -17,10 +17,25 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
-  let filePath = path.join(ROOT_DIR, req.url === '/' ? 'index.html' : req.url);
+  // Parse URL and remove query string
+  let urlPath = req.url.split('?')[0];
+  
+  // Convert /filename to filename for root-level files
+  if (urlPath.startsWith('/')) {
+    urlPath = urlPath.substring(1);
+  }
+  
+  // Default to index.html for root path
+  if (urlPath === '') {
+    urlPath = 'index.html';
+  }
+  
+  let filePath = path.join(ROOT_DIR, urlPath);
   
   // Security: prevent directory traversal
-  if (!filePath.startsWith(ROOT_DIR)) {
+  const normalizedFilePath = path.normalize(filePath);
+  const normalizedRootDir = path.normalize(ROOT_DIR);
+  if (!normalizedFilePath.startsWith(normalizedRootDir)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;

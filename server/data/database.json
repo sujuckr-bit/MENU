@@ -206,6 +206,47 @@
       "tableNumber": "2",
       "createdAt": 1765565110288,
       "id": 15
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "13",
+      "items": [
+        {
+          "category": "Makan",
+          "itemName": "Nasi Goreng Special",
+          "price": 30000,
+          "quantity": 1,
+          "subtotal": 30000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Lychee Tea",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 55000,
+      "completed": false,
+      "createdAt": 1765586859180,
+      "id": 16
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "completed": false,
+      "createdAt": 1765587779158,
+      "id": 17
     }
   ]
 }

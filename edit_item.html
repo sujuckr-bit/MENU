@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Menu Item - BAZAR HmI</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <style>
+        .edit-container { max-width: 600px; margin: 0 auto; }
+        .edit-card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px; }
+        .btn-group-actions { gap: 10px; }
+        .text-danger-light { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
+                <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
+                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
+            </a>
+            <div class="ms-auto">
+                <a href="admin-panel.html" class="btn btn-sm btn-outline-secondary">← Kembali</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container edit-container py-5">
+        <div class="mb-5">
+            <h1 class="display-6 fw-bold mb-2" style="color: #1a3a52;">✏️ Edit Menu Item</h1>
+            <p class="text-muted">Ubah informasi menu item</p>
+        </div>
+
+        <div class="card edit-card">
+            <div class="card-body p-5">
+                <form id="editForm">
+                    <div class="mb-4">
+                        <label for="itemName" class="form-label fw-bold">Nama Item:</label>
+                        <input type="text" id="itemName" class="form-control form-control-lg" placeholder="Nama item menu" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="itemPrice" class="form-label fw-bold">Harga (IDR):</label>
+                        <input type="number" id="itemPrice" class="form-control form-control-lg" placeholder="Harga dalam rupiah" min="0" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="itemStatus" class="form-label fw-bold">Status:</label>
+                        <select id="itemStatus" class="form-select form-select-lg">
+                            <option value="0">✅ Tersedia</option>
+                            <option value="1">❌ Habis (Out of Stock)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-3 justify-content-between">
+                        <button type="button" class="btn btn-danger btn-lg flex-grow-1" id="deleteBtn">
+                            🗑️ Hapus Item
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1" style="background: #17a2b8; border: none;">
+                            💾 Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script>
+        // Check admin
+        if (!isAdmin()) {
+            alert('❌ Akses ditolak. Silakan login sebagai admin terlebih dahulu.');
+            window.location.href = 'admin-login.html';
+        }
+
+        // Get query parameters
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('cat');
+        const itemIndex = parseInt(params.get('idx'), 10);
+
+        if (!category || isNaN(itemIndex)) {
+            alert('❌ Parameter tidak valid');
+            window.location.href = 'admin-panel.html';
+        }
+
+        const itemNameEl = document.getElementById('itemName');
+        const itemPriceEl = document.getElementById('itemPrice');
+        const itemStatusEl = document.getElementById('itemStatus');
+        const editForm = document.getElementById('editForm');
+        const deleteBtn = document.getElementById('deleteBtn');
+
+        let menus = {};
+
+        // Load item data
+        async function loadItem() {
+            try {
+                menus = loadMenusFromStorage();
+                if (!menus[category] || !menus[category][itemIndex]) {
+                    alert('❌ Item tidak ditemukan');
+                    window.location.href = 'admin-panel.html';
+                    return;
+                }
+
+                const item = menus[category][itemIndex];
+                itemNameEl.value = item.name;
+                itemPriceEl.value = item.price;
+                itemStatusEl.value = item.outOfStock ? '1' : '0';
+            } catch (e) {
+                console.error('Error loading item:', e);
+                alert('❌ Gagal memuat item');
+                window.location.href = 'admin-panel.html';
+            }
+        }
+
+        // Load from localStorage (admin.js uses localStorage, not API yet)
+        function loadMenusFromStorage() {
+            const stored = localStorage.getItem('siteMenus');
+            if (!stored) return getDefaultMenus();
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Gagal parse siteMenus', e);
+                return getDefaultMenus();
+            }
+        }
+
+        function getDefaultMenus() {
+            return {
+                'Minum': [
+                    { name: 'Minum', price: 0, outOfStock: false }
+                ],
+                'Makan': [
+                    { name: 'Makan', price: 0, outOfStock: false }
+                ]
+            };
+        }
+
+        function saveMenus(menusData) {
+            localStorage.setItem('siteMenus', JSON.stringify(menusData));
+            localStorage.setItem('siteMenusUpdatedAt', String(Date.now()));
+        }
+
+        // Handle form submission
+        editForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const updatedItem = {
+                name: itemNameEl.value.trim(),
+                price: parseInt(itemPriceEl.value, 10),
+                outOfStock: itemStatusEl.value === '1'
+            };
+
+            if (!updatedItem.name) {
+                alert('❌ Nama item tidak boleh kosong');
+                return;
+            }
+
+            if (isNaN(updatedItem.price) || updatedItem.price < 0) {
+                alert('❌ Harga tidak valid');
+                return;
+            }
+
+            // Update item
+            menus[category][itemIndex] = updatedItem;
+            saveMenus(menus);
+
+            alert('✅ Item berhasil diperbarui!');
+            window.location.href = 'admin-panel.html';
+        });
+
+        // Handle delete
+        deleteBtn.addEventListener('click', () => {
+            if (!confirm('Yakin ingin menghapus item ini?')) return;
+
+            menus[category].splice(itemIndex, 1);
+            saveMenus(menus);
+
+            alert('✅ Item berhasil dihapus!');
+            window.location.href = 'admin-panel.html';
+        });
+
+        // Load item on page load
+        loadItem();
+    </script>
+</body>
+</html>

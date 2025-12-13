@@ -1,0 +1,22 @@
+# Frontend Dockerfile (Static Server)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy serve.js (frontend server)
+COPY serve.js .
+
+# Copy all frontend assets
+COPY index.html admin.html admin-login.html pesan.html pesanan-saya.html daftar.html admin-panel.html ./
+COPY styles.css script.js admin.js admin-nav.js ./
+COPY assets ./assets
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:8000/ || exit 1
+
+# Start frontend server
+CMD ["node", "serve.js"]

@@ -8,29 +8,247 @@
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
-        body { background: #f8f9fa; }
-        .navbar { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .admin-container { max-width: 1000px; margin: 30px auto; padding: 20px; }
-        .section-card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 15px; }
-        .form-group { margin-bottom: 12px; }
-        .category-box { background: #f8f9fa; border-left: 4px solid #0d6efd; padding: 15px; margin-bottom: 12px; border-radius: 4px; }
-        .category-title { font-weight: 600; color: #333; margin-bottom: 10px; }
-        .item-row { display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 4px; margin-bottom: 6px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar { 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            background: white !important;
+            border-bottom: 3px solid #0d6efd;
+        }
+        .admin-container { 
+            max-width: 1200px; 
+            margin: 40px auto; 
+            padding: 20px;
+        }
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .header-section h1 {
+            color: #1a3a52;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header-section p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        .section-card { 
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .section-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+        .section-title { 
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a3a52;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #0d6efd;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-label {
+            font-weight: 600;
+            color: #1a3a52;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .category-box { 
+            background: linear-gradient(135deg, #f0f7ff 0%, #f9fafb 100%);
+            border-left: 5px solid #0d6efd;
+            padding: 18px;
+            margin-bottom: 18px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .category-box:hover {
+            border-left-color: #0b5ed7;
+            background: linear-gradient(135deg, #e7f3ff 0%, #f5f7fa 100%);
+        }
+        .category-title { 
+            font-weight: 700;
+            color: #0d6efd;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        .item-row { 
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+        }
+        .item-row:hover {
+            background: #f8f9fa;
+            border-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+        }
         .item-info { flex: 1; }
-        .item-name { font-weight: 500; color: #333; }
-        .item-price { color: #17a2b8; font-weight: 600; }
-        .item-status { font-size: 0.85rem; color: #dc3545; }
-        .btn-sm-custom { padding: 4px 8px; font-size: 0.85rem; }
-        .btn-danger-custom { background: #e74c3c; border: none; color: white; }
-        .btn-danger-custom:hover { background: #c0392b; }
-        .btn-warning-custom { background: #f39c12; border: none; color: white; }
-        .btn-warning-custom:hover { background: #d68910; }
-        input, textarea, select { border-radius: 4px; border: 1px solid #ddd; }
-        input:focus, textarea:focus, select:focus { border-color: #0d6efd; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1); }
-        .btn-primary-custom { background: #0d6efd; border: none; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-        .btn-primary-custom:hover { background: #0b5ed7; }
+        .item-name { 
+            font-weight: 600;
+            color: #1a3a52;
+            font-size: 1rem;
+        }
+        .item-price { 
+            color: #17a2b8;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .item-status { 
+            font-size: 0.8rem;
+            color: #dc3545;
+            background: #ffe5e5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .btn-group-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-edit, .btn-hapus, .btn-stock {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn-edit {
+            background: #0d6efd;
+            color: white;
+        }
+        .btn-edit:hover {
+            background: #0b5ed7;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+        }
+        .btn-hapus {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-hapus:hover {
+            background: #c82333;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+        .btn-stock {
+            background: #ffc107;
+            color: #333;
+        }
+        .btn-stock:hover {
+            background: #e0a800;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+        input, textarea, select { 
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+            outline: none;
+        }
+        .btn-primary-custom { 
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-primary-custom:hover { 
+            background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+            transform: translateY(-2px);
+        }
+        .btn-secondary-custom {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary-custom:hover {
+            background: #5c636a;
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
         .text-muted-custom { color: #6c757d; font-size: 0.9rem; }
+        .input-group-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .input-group-row input {
+            flex: 1;
+        }
+        textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 15px;
+            }
+            .section-card {
+                padding: 20px;
+            }
+            .header-section h1 {
+                font-size: 1.8rem;
+            }
+            .item-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .btn-group-actions {
+                width: 100%;
+            }
+            .btn-edit, .btn-hapus, .btn-stock {
+                flex: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -38,7 +256,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
-                <img src="logo.png" alt="HmI Logo" height="35" class="me-2">
+                <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
                 <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -70,9 +288,9 @@
     </nav>
 
     <div class="admin-container">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #333; font-weight: 700; margin-bottom: 5px;">⚙️ Edit Menu</h1>
-            <p class="text-muted-custom">Kelola kategori, item, harga, dan status stock menu</p>
+        <div class="header-section">
+            <h1>⚙️ Edit Menu Dashboard</h1>
+            <p class="text-muted-custom">Kelola kategori, item, harga, dan status stock menu dengan mudah dan real-time</p>
         </div>
 
         <div id="app">
@@ -88,7 +306,7 @@
             <!-- TAMBAH ITEM BARU (CRUD) -->
             <div class="section-card">
                 <div class="section-title">➕ Tambah Item Baru</div>
-                <div style="background: #f8f9fa; padding: 20px; border-radius: 6px;">
+                <div style="background: #f0f7ff; padding: 20px; border-radius: 8px; border: 1px solid #d9e9f7;">
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-600">Kategori</label>
@@ -142,9 +360,12 @@
             </div>
 
             <!-- AKSI GLOBAL -->
-            <div class="section-card" style="text-align: center;">
-                <button id="saveBtn" class="btn-primary-custom" style="margin-right: 10px;">💾 Simpan Perubahan</button>
-                <button id="resetBtn" class="btn btn-warning btn-sm">🔄 Reset ke Default</button>
+            <div class="section-card">
+                <div class="section-title">💾 Aksi Penting</div>
+                <div class="action-buttons">
+                    <button id="saveBtn" class="btn-primary-custom">💾 Simpan Perubahan</button>
+                    <button id="resetBtn" class="btn-secondary-custom">🔄 Reset ke Default</button>
+                </div>
             </div>
             
             <!-- UBAH PASSWORD ADMIN -->
@@ -162,6 +383,7 @@
     </div>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
     <script src="assets/js/auth.js"></script>
     <script>
         // Protect this page: prefer server session check, fall back to client flag

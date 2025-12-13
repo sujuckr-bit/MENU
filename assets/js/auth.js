@@ -1,5 +1,5 @@
 // Client auth helper that prefers server API but falls back to legacy client-side storage if needed.
-const AUTH_API_BASE = '/api';
+const AUTH_API_BASE = 'http://localhost:3000/api';
 
 function initializeAdminPassword() {
     // kept for compatibility with existing code; server manages password now

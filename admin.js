@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const isAdmin = sessionStorage.getItem('isAdmin') === '1';
     const notAuth = document.getElementById('notAuth');
     const app = document.getElementById('app');
@@ -108,66 +108,163 @@ document.addEventListener('DOMContentLoaded', () => {
     function persist(menus) {
         localStorage.setItem('siteMenus', JSON.stringify(menus));
         localStorage.setItem('siteMenusUpdatedAt', String(Date.now()));
+        // Try to save to backend API (non-blocking)
+        try {
+            if (typeof saveMenusToAPI === 'function') {
+                saveMenusToAPI(menus).then(ok => {
+                    console.log('[SYNC] saveMenusToAPI result:', ok);
+                }).catch(err => console.warn('[SYNC] saveMenusToAPI error:', err));
+            }
+        } catch (e) {
+            console.warn('[SYNC] saveMenusToAPI exception', e);
+        }
+    }
+
+    // Undo / tentative-delete helpers
+    let currentUndoEl = null;
+    function showUndo(message, undoFn, timeoutMs = 7000) {
+        // remove existing
+        if (currentUndoEl) { currentUndoEl.remove(); currentUndoEl = null; }
+        const bar = document.createElement('div');
+        bar.style.position = 'fixed';
+        bar.style.left = '20px';
+        bar.style.right = '20px';
+        bar.style.bottom = '20px';
+        bar.style.zIndex = '9999';
+        bar.style.display = 'flex';
+        bar.style.justifyContent = 'space-between';
+        bar.style.alignItems = 'center';
+        bar.style.background = 'rgba(33,37,41,0.95)';
+        bar.style.color = 'white';
+        bar.style.padding = '12px 16px';
+        bar.style.borderRadius = '8px';
+        bar.style.boxShadow = '0 6px 18px rgba(0,0,0,0.2)';
+
+        const txt = document.createElement('div'); txt.textContent = message;
+        const btns = document.createElement('div');
+        const undoBtn = document.createElement('button'); undoBtn.textContent = 'Undo';
+        undoBtn.style.marginLeft = '12px';
+        undoBtn.className = 'btn-secondary-custom';
+        btns.appendChild(undoBtn);
+        bar.appendChild(txt); bar.appendChild(btns);
+        document.body.appendChild(bar);
+        currentUndoEl = bar;
+
+        let done = false;
+        const timer = setTimeout(() => {
+            if (done) return;
+            done = true;
+            if (currentUndoEl) { currentUndoEl.remove(); currentUndoEl = null; }
+        }, timeoutMs);
+
+        undoBtn.addEventListener('click', () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            try { undoFn(); } catch (e) { console.error('Undo failed', e); }
+            if (currentUndoEl) { currentUndoEl.remove(); currentUndoEl = null; }
+        });
     }
 
     function render() {
         const menus = loadMenus();
         categoriesEl.innerHTML = '';
+
         // update category select used by manual add
         addItemCategory.innerHTML = '';
-        const placeholderOpt = document.createElement('option'); placeholderOpt.value=''; placeholderOpt.textContent='Pilih kategori'; addItemCategory.appendChild(placeholderOpt);
+        const placeholderOpt = document.createElement('option');
+        placeholderOpt.value = '';
+        placeholderOpt.textContent = 'Pilih kategori';
+        addItemCategory.appendChild(placeholderOpt);
+
+        const grid = document.createElement('div');
+        grid.className = 'categories-grid';
+
         for (const cat of Object.keys(menus)) {
+            // populate select
             const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; addItemCategory.appendChild(opt);
-            const container = document.createElement('div');
-            container.className = 'cat';
-            const header = document.createElement('div');
-            header.style.display = 'flex';
-            header.style.justifyContent = 'space-between';
-            header.innerHTML = `<strong>${cat}</strong>`;
+
+            // create category card
+            const card = document.createElement('div');
+            card.className = 'category-box';
+
+            const hdr = document.createElement('div');
+            hdr.style.display = 'flex';
+            hdr.style.justifyContent = 'space-between';
+            hdr.style.alignItems = 'center';
+
+            const title = document.createElement('div');
+            title.className = 'category-title';
+            title.textContent = cat + ' (' + (menus[cat]?.length || 0) + ')';
 
             const headerBtns = document.createElement('div');
-            const addItemBtn = document.createElement('button'); addItemBtn.textContent = 'Tambah Item'; addItemBtn.className = 'btn';
-            const delCatBtn = document.createElement('button'); delCatBtn.textContent = 'Hapus Kategori'; delCatBtn.className = 'btn danger';
+            headerBtns.className = 'btn-group-actions';
+            const addItemBtn = document.createElement('button'); addItemBtn.textContent = 'Tambah Item'; addItemBtn.className = 'btn-edit';
+            const delCatBtn = document.createElement('button'); delCatBtn.textContent = 'Hapus Kategori'; delCatBtn.className = 'btn-hapus';
             headerBtns.appendChild(addItemBtn); headerBtns.appendChild(delCatBtn);
-            header.appendChild(headerBtns);
-            container.appendChild(header);
 
+            hdr.appendChild(title);
+            hdr.appendChild(headerBtns);
+            card.appendChild(hdr);
+
+            // items list
             const list = document.createElement('div');
-            menus[cat].forEach((it, idx) => {
+            list.style.marginTop = '12px';
+
+            (menus[cat] || []).forEach((it, idx) => {
                 const row = document.createElement('div'); row.className = 'item-row';
-                const colName = document.createElement('div'); colName.textContent = it.name + (it.outOfStock ? ' (Habis)' : '');
-                const colPrice = document.createElement('div'); colPrice.textContent = it.price;
-                const colActions = document.createElement('div');
-                const editBtn = document.createElement('button'); editBtn.textContent = 'Edit'; editBtn.className = 'btn';
-                const delBtn = document.createElement('button'); delBtn.textContent = 'Hapus'; delBtn.className = 'btn danger';
-                const toggle = document.createElement('button'); toggle.textContent = it.outOfStock ? 'Tersedia' : 'Tandai Habis'; toggle.className='btn';
-                colActions.appendChild(editBtn); colActions.appendChild(delBtn); colActions.appendChild(toggle);
-                row.appendChild(colName); row.appendChild(colPrice); row.appendChild(colActions);
+
+                const info = document.createElement('div'); info.className = 'item-info';
+                const nameEl = document.createElement('div'); nameEl.className = 'item-name'; nameEl.textContent = it.name;
+                const meta = document.createElement('div'); meta.style.marginTop = '6px'; meta.innerHTML = `<span class="item-price">Rp ${Number(it.price).toLocaleString('id-ID')}</span>`;
+                if (it.outOfStock) {
+                    const badge = document.createElement('span'); badge.className = 'item-status'; badge.textContent = 'Habis';
+                    badge.style.marginLeft = '12px';
+                    meta.appendChild(badge);
+                }
+                info.appendChild(nameEl); info.appendChild(meta);
+
+                const actions = document.createElement('div'); actions.className = 'btn-group-actions';
+                const editBtn = document.createElement('button'); editBtn.className = 'btn-edit'; editBtn.textContent = 'Edit';
+                const delBtn = document.createElement('button'); delBtn.className = 'btn-hapus'; delBtn.textContent = 'Hapus';
+                const toggleBtn = document.createElement('button'); toggleBtn.className = 'btn-stock'; toggleBtn.textContent = it.outOfStock ? 'Tersedia' : 'Tandai Habis';
+                actions.appendChild(editBtn); actions.appendChild(delBtn); actions.appendChild(toggleBtn);
+
+                row.appendChild(info); row.appendChild(actions);
                 list.appendChild(row);
 
+                // handlers
                 editBtn.addEventListener('click', () => {
-                    // open dedicated edit page
                     const params = new URLSearchParams({ cat, idx: String(idx) });
                     window.location.href = 'edit_item.html?' + params.toString();
                 });
 
                 delBtn.addEventListener('click', () => {
                     if (!confirm('Hapus item ini?')) return;
-                    menus[cat].splice(idx,1);
+                    // remove item and allow undo
+                    const removed = menus[cat].splice(idx,1)[0];
                     persist(menus);
                     render();
+                    showUndo(`Item "${removed.name}" dihapus.`, () => {
+                        // restore
+                        if (!menus[cat]) menus[cat] = [];
+                        menus[cat].splice(idx, 0, removed);
+                        persist(menus);
+                        render();
+                    });
                 });
 
-                toggle.addEventListener('click', () => {
+                toggleBtn.addEventListener('click', () => {
                     menus[cat][idx].outOfStock = !menus[cat][idx].outOfStock;
                     persist(menus);
                     render();
                 });
             });
 
-            container.appendChild(list);
-            categoriesEl.appendChild(container);
+            card.appendChild(list);
+            grid.appendChild(card);
 
+            // header actions
             addItemBtn.addEventListener('click', () => {
                 const name = prompt('Nama item baru:'); if (!name) return;
                 const price = parseInt(prompt('Harga (angka):','0'),10); if (Number.isNaN(price)) { alert('Harga tidak valid'); return; }
@@ -177,9 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             delCatBtn.addEventListener('click', () => {
                 if (!confirm('Hapus kategori dan semua itemnya?')) return;
+                const removedItems = menus[cat];
                 delete menus[cat]; persist(menus); render();
+                showUndo(`Kategori "${cat}" dihapus.`, () => {
+                    menus[cat] = removedItems;
+                    persist(menus);
+                    render();
+                });
             });
         }
+
+        categoriesEl.appendChild(grid);
     }
 
     addCategoryBtn.addEventListener('click', () => {
@@ -242,8 +347,23 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Kategori dan item berhasil dibuat.');
     });
 
-    saveBtn.addEventListener('click', () => {
-        alert('Perubahan disimpan. Halaman lain dapat memuat ulang untuk mengambil perubahan.');
+    saveBtn.addEventListener('click', async () => {
+        const menus = loadMenus();
+        try {
+            if (typeof saveMenusToAPI === 'function') {
+                const ok = await saveMenusToAPI(menus);
+                if (ok) {
+                    alert('✅ Perubahan berhasil disimpan ke server.');
+                } else {
+                    alert('⚠️ Gagal menyimpan ke server. Perubahan tersimpan lokal.');
+                }
+            } else {
+                alert('Perubahan disimpan secara lokal. (No API available)');
+            }
+        } catch (e) {
+            console.error('Save to API failed', e);
+            alert('⚠️ Terjadi error saat menyimpan ke server. Perubahan tersimpan lokal.');
+        }
     });
 
     resetBtn.addEventListener('click', () => {
@@ -254,6 +374,18 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Reset selesai. Silakan buka halaman utama untuk melihat perubahan.');
         render();
     });
+
+    // Initialize: try to fetch menus from API first, fallback to local
+    try {
+        if (typeof fetchMenusFromAPI === 'function') {
+            const remote = await fetchMenusFromAPI();
+            if (remote && Object.keys(remote).length > 0) {
+                persist(remote);
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to fetch menus from API:', e);
+    }
 
     render();
 });
