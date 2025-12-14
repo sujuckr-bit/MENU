@@ -574,18 +574,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nm = (o.nmid || (window.serverSettings && window.serverSettings.QRIS_MERCHANT_NMID) || 'ID1025389810363').toString();
                 const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'BAZAR HmI';
                 const merchantCity = (window.serverSettings && window.serverSettings.MERCHANT_CITY) || 'MAKASSAR';
-            const amount = formatAmount(o.total || 0);
 
+            // For static QRIS we set Point of Initiation = '11' and omit amount
+            // so the generated QR is a static merchant QR that can be scanned
+            // without pre-filled amount (payer can enter amount in their app).
             // Merchant Account Information (tag 29) — using sub tags: 00=GUI, 01=NMID
             const mai = tlv('00', 'ID.CO.QRIS') + tlv('01', nm);
 
             let payload = '';
             payload += tlv('00', '01'); // Payload Format Indicator
-            payload += tlv('01', '12'); // Point of Initiation Method (12 = dynamic)
+            payload += tlv('01', '11'); // Point of Initiation Method (11 = static)
             payload += tlv('29', mai);
             payload += tlv('52', '0000'); // Merchant Category Code (0000 placeholder)
             payload += tlv('53', '360'); // Currency: IDR = 360
-            if (amount) payload += tlv('54', amount);
+            // For static QR we intentionally do NOT include tag 54 (amount)
             payload += tlv('58', 'ID');
             payload += tlv('59', merchantName);
             payload += tlv('60', merchantCity);
@@ -607,15 +609,37 @@ document.addEventListener('DOMContentLoaded', function() {
         let extraQRSection = '';
         try {
             if (order.paymentMethod === 'qris') {
-                const payload = buildEMVQRPayload(order, receiptNumber);
-                const qrUrl = getQRImageURL(payload);
-                // Log payload & URL for debugging (useful to inspect NMID / CRC)
-                console.log('[QRIS] Payload:', payload);
-                console.log('[QRIS] QR Image URL:', qrUrl);
-                extraQRSection = `\n                    <div style="text-align: center; margin-top: 15px;">\n                        <p style=\"margin-bottom:8px; font-weight:600;\">Scan untuk membayar via QRIS</p>\n                        <img src=\"${qrUrl}\" alt=\"QRIS Code\" style=\"max-width:260px; margin: 0 auto; display:block; border-radius:8px;\"/>\n                        <div style=\"display:flex; gap:10px; justify-content:center; margin-top:10px;\">\n                            <a href=\"${qrUrl}\" target=\"_blank\" class=\"btn btn-outline-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none;\">Buka Gambar</a>\n                            <a href=\"${qrUrl}\" download=\"${receiptNumber}.png\" class=\"btn btn-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none; color:white;\">Unduh QR</a>\n                        </div>\n                        <div style=\"margin-top:10px;\">\n                            <button id=\"copyQrisPayloadBtn\" class=\"btn btn-sm btn-outline-secondary\" style=\"margin-top:8px;\">Salin Payload</button>\n                            <textarea id=\"qrisPayloadArea\" style=\"display:none;\">${payload}</textarea>\n                        </div>\n                    </div>\n                `;
+                // Use static QRIS image for all orders
+                const staticQrisPath = 'assets/img/qris-static.png';
+                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'BAZAR HmI';
+                const merchantCity = (window.serverSettings && window.serverSettings.MERCHANT_CITY) || 'Makassar';
+                const nmid = (window.serverSettings && window.serverSettings.QRIS_MERCHANT_NMID) || 'ID1025389810363';
+                
+                // Create image with error fallback to styled merchant info
+                extraQRSection = `
+                    <div style="text-align: center; margin-top: 15px;">
+                        <p style="margin-bottom:8px; font-weight:600;">Scan untuk membayar via QRIS</p>
+                        <p style="font-size: 12px; color: #666; margin: 5px 0;">Gunakan GoPay, OVO, Dana, atau e-wallet lainnya</p>
+                        <div style="position: relative; display: inline-block; width: 280px;">
+                            <img id="qrisImageReceipt" src="${staticQrisPath}" alt="QRIS Code" style="max-width:260px; margin: 10px auto; display:block; border-radius:8px; border: 1px solid #ddd; width: 100%;" onerror="this.style.display='none'; document.getElementById('qrisPlaceholder_${receiptNumber}').style.display='block';"/>
+                            <div id="qrisPlaceholder_${receiptNumber}" style="max-width:260px; margin: 10px auto; padding: 20px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 8px; border: 2px solid #0d6efd; display: none; font-size: 13px; color: white; text-align: center;">
+                                <p style="margin: 8px 0; font-weight: 700; font-size: 14px;">📱 QRIS PEMBAYARAN</p>
+                                <div style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
+                                    <p style="margin: 4px 0; color: #1a3a52; font-weight: 600;">${merchantName}</p>
+                                    <p style="margin: 4px 0; color: #1a3a52; font-size: 11px;">NMID: ${nmid}</p>
+                                </div>
+                                <p style="margin: 8px 0; font-size: 11px; color: #ccc;">Scan dengan GoPay/OVO/Dana</p>
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size: 11px; color: #666;">
+                            <p style="margin: 3px 0;"><strong>Merchant:</strong> ${merchantName}</p>
+                            <p style="margin: 3px 0;"><strong>NMID:</strong> ${nmid}</p>
+                        </div>
+                    </div>
+                `;
             }
         } catch (e) {
-            console.error('Gagal buat QRIS payload:', e);
+            console.error('Gagal tampilkan QRIS:', e);
         }
 
         modal.innerHTML = `

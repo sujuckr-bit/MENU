@@ -273,6 +273,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="qris-generator.html" style="color: #495057; font-weight: 500;">🎯 QRIS Generator</a>
+                    </li>
                     <li class="nav-item ms-3">
                         <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: #17a2b8; border: none; border-radius: 6px; color: white;">📝 Buat Pesanan</a>
                     </li>
@@ -368,6 +371,42 @@
                 </div>
             </div>
             
+            <!-- PENGATURAN QRIS -->
+            <div class="section-card">
+                <div class="section-title">🎯 Pengaturan QRIS Statis</div>
+                <p class="text-muted-custom">Kelola data merchant QRIS untuk static QR code (tanpa amount dinamis).</p>
+                <form id="qrisSettingsForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-600">NMID (Nomor ID Merchant)</label>
+                                <input id="qrisNmidAdmin" type="text" class="form-control" placeholder="ID1025389810363" required />
+                                <small class="text-muted-custom d-block mt-1">Contoh: ID1025389810363</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-600">Nama Merchant</label>
+                                <input id="qrisMerchantNameAdmin" type="text" class="form-control" placeholder="SERVIS KOMPUTER" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-600">Kota</label>
+                                <input id="qrisCityAdmin" type="text" class="form-control" placeholder="Makassar" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button id="saveQrisBtn" type="button" class="btn-primary-custom">💾 Simpan Pengaturan QRIS</button>
+                        <a href="qris-generator.html" class="btn btn-outline-primary" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">🎯 Buka Generator QRIS</a>
+                    </div>
+                    <div id="qrisMessage" class="text-muted-custom" style="margin-top: 10px;"></div>
+                </form>
+            </div>
+            
             <!-- UBAH PASSWORD ADMIN -->
             <div class="section-card">
                 <div class="section-title">🔒 Ubah Password Admin</div>
@@ -460,7 +499,64 @@
         }
     </script>
     <script>
-        // Change password handler (uses setAdminPassword from assets/js/auth.js)
+        // Load QRIS settings on page load
+        (async function loadQrisSettings() {
+            try {
+                const result = await apiCall('settings');
+                if (result.ok && result.data) {
+                    document.getElementById('qrisNmidAdmin').value = result.data.QRIS_MERCHANT_NMID || 'ID1025389810363';
+                    document.getElementById('qrisMerchantNameAdmin').value = result.data.MERCHANT_NAME || 'BAZAR HmI';
+                    document.getElementById('qrisCityAdmin').value = result.data.MERCHANT_CITY || 'Makassar';
+                }
+            } catch (e) {
+                console.error('Failed to load QRIS settings:', e);
+            }
+        })();
+
+        // Save QRIS settings
+        const saveQrisBtn = document.getElementById('saveQrisBtn');
+        const qrisMessage = document.getElementById('qrisMessage');
+        if (saveQrisBtn) {
+            saveQrisBtn.addEventListener('click', async () => {
+                const nmid = document.getElementById('qrisNmidAdmin').value.trim();
+                const name = document.getElementById('qrisMerchantNameAdmin').value.trim();
+                const city = document.getElementById('qrisCityAdmin').value.trim();
+
+                if (!nmid || !name || !city) {
+                    qrisMessage.textContent = '❌ Mohon isi semua field';
+                    qrisMessage.style.color = '#dc3545';
+                    return;
+                }
+
+                try {
+                    const result = await apiCall('settings', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            QRIS_MERCHANT_NMID: nmid,
+                            MERCHANT_NAME: name,
+                            MERCHANT_CITY: city
+                        })
+                    });
+
+                    if (result.ok) {
+                        qrisMessage.textContent = '✅ Pengaturan QRIS berhasil disimpan!';
+                        qrisMessage.style.color = '#198754';
+                        if (typeof showToast === 'function') {
+                            showToast('✅ QRIS settings saved successfully', 'success');
+                        }
+                    } else {
+                        qrisMessage.textContent = '❌ Gagal menyimpan pengaturan';
+                        qrisMessage.style.color = '#dc3545';
+                    }
+                } catch (e) {
+                    console.error('Error saving QRIS settings:', e);
+                    qrisMessage.textContent = '❌ Error: ' + e.message;
+                    qrisMessage.style.color = '#dc3545';
+                }
+            });
+        }
+    </script>
+    <script>
         (function() {
             const changeBtn = document.getElementById('changePasswordBtn');
             const input = document.getElementById('newAdminPassword');

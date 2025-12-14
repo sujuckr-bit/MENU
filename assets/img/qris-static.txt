@@ -1,0 +1,22 @@
+[QRIS STATIC IMAGE PLACEHOLDER]
+
+SAVE YOUR QRIS MERCHANT IMAGE HERE:
+- File name: qris-static.png
+- Location: assets/img/qris-static.png
+- Image: Your official QRIS from GPN
+- NMID: ID1025389810363
+- Merchant: SERVIS KOMPUTER
+- City: Makassar
+
+The application expects:
+- PNG format (JPEG also works)
+- Size: 300x300 or larger
+- Contains your QRIS QR code
+
+Instructions:
+1. Export/save your QRIS merchant image from the GPN template
+2. Name it: qris-static.png
+3. Place it in this folder (assets/img/)
+4. The generator and receipts will use this static image
+
+Currently: Using placeholder path 'assets/img/qris-static.png'

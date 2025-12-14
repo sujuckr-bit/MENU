@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator QR QRIS Statis - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container-main {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .card-header {
+            background: #1a3a52;
+            color: white;
+            font-weight: 600;
+        }
+        .qr-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .qr-preview img {
+            max-width: 100%;
+            max-height: 400px;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .btn-group-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .btn-action {
+            flex: 1;
+            min-width: 150px;
+        }
+        .payload-text {
+            background: #2d3436;
+            color: #00ff00;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            word-break: break-all;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-main">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 style="color: white; font-weight: 700;">🎯 Generator QR QRIS Statis</h1>
+                    <a href="admin.html" class="btn btn-outline-light">← Kembali ke Admin</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card shadow-lg">
+            <div class="card-header">
+                ⚙️ Pengaturan QRIS Statis
+            </div>
+            <div class="card-body">
+                <form id="qrisStaticForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="staticNmid" class="form-label"><strong>NMID (Nomor Identitas Merchant)</strong></label>
+                            <input type="text" class="form-control" id="staticNmid" placeholder="ID1025389810363" required>
+                            <small class="text-muted">Contoh: ID1025389810363</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="staticMerchantName" class="form-label"><strong>Nama Merchant</strong></label>
+                            <input type="text" class="form-control" id="staticMerchantName" placeholder="SERVIS KOMPUTER" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="staticCity" class="form-label"><strong>Kota</strong></label>
+                            <input type="text" class="form-control" id="staticCity" placeholder="Makassar" required>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>ℹ️ QR QRIS Statis</strong><br>
+                        QR ini dapat discan dari aplikasi GoPay, OVO, Dana, atau app e-wallet lainnya. Payer akan memasukkan jumlah pembayaran secara manual di aplikasi mereka. Cocok untuk ditempel di kios, poster, atau sticker.
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-lg w-100" id="generateBtn">
+                        🔄 Generate QR QRIS Statis
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- QR Preview -->
+        <div class="card shadow-lg mt-4">
+            <div class="card-header">
+                📱 Pratinjau QR Code
+            </div>
+            <div class="card-body">
+                <div class="qr-preview" id="qrPreviewContainer" style="display: none; position: relative;">
+                    <img id="qrImage" alt="QR QRIS Statis" style="max-width: 100%; max-height: 400px;" onerror="this.style.display='none'; document.getElementById('qrPlaceholder').style.display='block';"/>
+                    <div id="qrPlaceholder" style="max-width: 350px; margin: 20px auto; padding: 30px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 12px; border: 2px solid #0d6efd; display: none; font-size: 14px; color: white; text-align: center;">
+                        <p style="margin: 10px 0; font-weight: 700; font-size: 16px;">📱 QRIS PEMBAYARAN NASIONAL</p>
+                        <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <p style="margin: 5px 0; color: #1a3a52; font-weight: 700;" id="placeholderMerchant">SERVIS KOMPUTER</p>
+                            <p style="margin: 5px 0; color: #1a3a52; font-size: 12px;">NMID: <span id="placeholderNmid">ID1025389810363</span></p>
+                            <p style="margin: 5px 0; color: #1a3a52; font-size: 12px;">Kota: <span id="placeholderCity">Makassar</span></p>
+                        </div>
+                        <p style="margin: 10px 0; font-size: 12px; color: #ccc;">Scan dengan aplikasi e-wallet pilihan Anda</p>
+                        <p style="margin: 5px 0; font-size: 11px; color: #aaa;">GoPay • OVO • Dana • LinkAja</p>
+                    </div>
+                </div>
+                <div id="noQrMsg" class="text-center text-muted py-5">
+                    Klik tombol "Generate QR QRIS Statis" untuk menghasilkan QR code
+                </div>
+
+                <!-- Payload Display -->
+                <div class="mt-4" id="payloadSection" style="display: none;">
+                    <h6 class="fw-bold mb-2">📋 EMVCo Payload:</h6>
+                    <div class="payload-text" id="payloadText"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="copyPayloadBtn">
+                        📋 Salin Payload
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group-actions" id="actionButtons" style="display: none;">
+                    <button type="button" class="btn btn-success btn-action" id="downloadQrBtn">
+                        ⬇️ Unduh QR (PNG)
+                    </button>
+                    <button type="button" class="btn btn-info btn-action" id="printQrBtn">
+                        🖨️ Cetak QR
+                    </button>
+                    <button type="button" class="btn btn-warning btn-action" id="downloadPdfBtn">
+                        📄 Unduh PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card shadow-lg mt-4">
+            <div class="card-header">
+                📖 Panduan Penggunaan
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li><strong>Isi NMID dan data merchant</strong> sesuai dengan data QRIS resmi dari GPN.</li>
+                    <li><strong>Klik "Generate QR QRIS Statis"</strong> untuk membuat QR code.</li>
+                    <li><strong>Unduh atau cetak QR</strong> dan tempel di lokasi yang terlihat oleh pelanggan (kios, poster, dll).</li>
+                    <li><strong>Pelanggan scan</strong> QR code tersebut menggunakan aplikasi e-wallet pilihan mereka.</li>
+                    <li><strong>Payer memasukkan nominal</strong> pembayaran secara manual di aplikasi mereka.</li>
+                </ol>
+                <div class="alert alert-info mt-3">
+                    <strong>💡 Keuntungan QR QRIS Statis:</strong><br>
+                    ✅ Satu QR code untuk semua transaksi<br>
+                    ✅ Mudah dicetak dan dipajang<br>
+                    ✅ Tidak perlu per-pesanan QR<br>
+                    ✅ Kompatibel semua e-wallet
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden elements for download -->
+        <textarea id="payloadArea" style="display: none;"></textarea>
+        <canvas id="qrCanvas" style="display: none;"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
+    <script src="assets/js/toast.js"></script>
+
+    <script>
+        // Static QRIS QR Code - using the official merchant image
+        // NMID: ID1025389810363
+        // Merchant: SERVIS KOMPUTER
+        // City: Makassar
+        const STATIC_QRIS_IMAGE_PATH = 'assets/img/qris-static.png';
+
+        let currentQrisImageUrl = STATIC_QRIS_IMAGE_PATH;
+
+        // Event listeners
+        const generateBtn = document.getElementById('generateBtn');
+        const staticNmid = document.getElementById('staticNmid');
+        const staticMerchantName = document.getElementById('staticMerchantName');
+        const staticCity = document.getElementById('staticCity');
+        const qrImage = document.getElementById('qrImage');
+        const qrPreviewContainer = document.getElementById('qrPreviewContainer');
+        const noQrMsg = document.getElementById('noQrMsg');
+        const payloadText = document.getElementById('payloadText');
+        const payloadSection = document.getElementById('payloadSection');
+        const actionButtons = document.getElementById('actionButtons');
+        const copyPayloadBtn = document.getElementById('copyPayloadBtn');
+        const downloadQrBtn = document.getElementById('downloadQrBtn');
+        const printQrBtn = document.getElementById('printQrBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const payloadArea = document.getElementById('payloadArea');
+
+        let currentPayload = '';
+
+        // Load settings from localStorage or API on page load
+        window.addEventListener('load', async () => {
+            try {
+                // Try to fetch from API
+                const result = await apiCall('settings');
+                if (result.ok && result.data) {
+                    staticNmid.value = result.data.QRIS_MERCHANT_NMID || 'ID1025389810363';
+                    staticMerchantName.value = result.data.MERCHANT_NAME || 'BAZAR HmI';
+                    staticCity.value = result.data.MERCHANT_CITY || 'Makassar';
+                } else {
+                    // Fallback to localStorage or hardcoded defaults
+                    const stored = localStorage.getItem('qrisSettings');
+                    if (stored) {
+                        const s = JSON.parse(stored);
+                        staticNmid.value = s.nmid || 'ID1025389810363';
+                        staticMerchantName.value = s.merchantName || 'BAZAR HmI';
+                        staticCity.value = s.city || 'Makassar';
+                    } else {
+                        staticNmid.value = 'ID1025389810363';
+                        staticMerchantName.value = 'SERVIS KOMPUTER';
+                        staticCity.value = 'Makassar';
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load settings:', e);
+            }
+        });
+
+        generateBtn.addEventListener('click', () => {
+            const nmid = staticNmid.value.trim();
+            const merchantName = staticMerchantName.value.trim();
+            const city = staticCity.value.trim();
+
+            if (!nmid || !merchantName || !city) {
+                showToast('❌ Mohon lengkapi semua field', 'error');
+                return;
+            }
+
+            try {
+                // Display static QRIS image
+                qrImage.src = STATIC_QRIS_IMAGE_PATH;
+                qrImage.alt = `QR QRIS Statis - ${merchantName}`;
+                qrImage.style.display = 'block';
+                
+                // Update placeholder if image fails to load
+                document.getElementById('placeholderMerchant').textContent = merchantName;
+                document.getElementById('placeholderNmid').textContent = nmid;
+                document.getElementById('placeholderCity').textContent = city;
+                
+                qrPreviewContainer.style.display = 'block';
+                noQrMsg.style.display = 'none';
+                
+                // Build and display the EMVCo payload for reference
+                currentPayload = `NMID: ${nmid}\nMerchant: ${merchantName}\nKota: ${city}\n\n[Static QRIS - Scan with GoPay/OVO/Dana]`;
+                payloadText.textContent = currentPayload;
+                payloadSection.style.display = 'block';
+                actionButtons.style.display = 'flex';
+
+                // Save settings to localStorage
+                localStorage.setItem('qrisSettings', JSON.stringify({ nmid, merchantName, city }));
+
+                showToast('✅ QR QRIS Statis siap digunakan', 'success');
+                console.log('[QRIS Static] Merchant:', merchantName, 'NMID:', nmid, 'City:', city);
+            } catch (e) {
+                console.error('Error loading QRIS:', e);
+                showToast('❌ Gagal memuat QR: ' + e.message, 'error');
+            }
+        });
+
+        copyPayloadBtn.addEventListener('click', () => {
+            payloadArea.value = currentPayload;
+            payloadArea.select();
+            document.execCommand('copy');
+            showToast('✅ Informasi QRIS disalin ke clipboard', 'success');
+        });
+
+        downloadQrBtn.addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.href = STATIC_QRIS_IMAGE_PATH;
+            a.download = `QRIS-${staticMerchantName.value.replace(/\s+/g, '-')}.png`;
+            a.click();
+            showToast('✅ QR PNG berhasil diunduh', 'success');
+        });
+
+        printQrBtn.addEventListener('click', () => {
+            const printWindow = window.open('', '', 'width=400,height=500');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Cetak QR QRIS</title>
+                    <style>
+                        body { margin: 20px; text-align: center; font-family: Arial; }
+                        h2 { margin-bottom: 20px; }
+                        img { max-width: 100%; }
+                        .info { margin-top: 20px; font-size: 14px; }
+                    </style>
+                </head>
+                <body>
+                    <h2>${staticMerchantName.value}</h2>
+                    <p>NMID: ${staticNmid.value}</p>
+                    <p>${staticCity.value}</p>
+                    <img src="${STATIC_QRIS_IMAGE_PATH}" alt="QR QRIS" style="max-width: 300px; margin: 20px auto; display: block;" />
+                    <div class="info">
+                        <p><strong>Scan dengan aplikasi e-wallet Anda</strong></p>
+                        <p>GoPay • OVO • Dana • LinkAja</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => printWindow.print(), 500);
+        });
+
+        downloadPdfBtn.addEventListener('click', () => {
+            showToast('💡 Menggunakan browser print ke PDF...', 'info');
+            printQrBtn.click();
+        });
+    </script>
+</body>
+</html>
