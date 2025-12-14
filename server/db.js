@@ -6,7 +6,20 @@ const DB_PATH = path.join(DB_DIR, 'database.json');
 
 let state = { users: {}, menus: {}, orders: [] };
 
+// If RAM_ONLY is set to '1' or 'true', the server will keep data only in memory
+// and will NOT read/write the disk. Useful for lightweight/ephemeral runs.
+const RAM_ONLY = process.env.RAM_ONLY === '1' || process.env.RAM_ONLY === 'true';
+
+// Debounced async save to avoid blocking and excessive disk writes
+let saveTimeout = null;
+const SAVE_DEBOUNCE_MS = 500;
+
 function load() {
+  if (RAM_ONLY) {
+    state = { users: {}, menus: {}, orders: [] };
+    return;
+  }
+
   fs.ensureDirSync(DB_DIR);
   if (fs.existsSync(DB_PATH)) {
     try {
@@ -15,16 +28,41 @@ function load() {
       state = { users: {}, menus: {}, orders: [] };
     }
   } else {
-    fs.writeJsonSync(DB_PATH, state, { spaces: 2 });
+    try {
+      fs.writeJsonSync(DB_PATH, state, { spaces: 2 });
+    } catch (e) {
+      // ignore write errors at init
+    }
   }
 }
 
+function _writeToDiskNow() {
+  if (RAM_ONLY) return Promise.resolve();
+  return fs.ensureDir(DB_DIR).then(() => fs.writeJson(DB_PATH, state, { spaces: 2 })).catch(err => {
+    console.error('[DB] Failed to write database file:', err && err.message);
+  });
+}
+
 function save() {
-  fs.writeJsonSync(DB_PATH, state, { spaces: 2 });
+  if (RAM_ONLY) return;
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    saveTimeout = null;
+    _writeToDiskNow();
+  }, SAVE_DEBOUNCE_MS);
+}
+
+function flush() {
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+    saveTimeout = null;
+  }
+  return _writeToDiskNow();
 }
 
 function init() {
   load();
+  if (RAM_ONLY) console.log('[DB] Running in RAM_ONLY mode; data will not persist to disk');
 }
 
 function getUser(username) {
@@ -74,4 +112,5 @@ module.exports = {
   getOrders,
   saveOrders,
   addOrder,
+  flush,
 };

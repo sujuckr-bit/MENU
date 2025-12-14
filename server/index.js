@@ -297,4 +297,17 @@ async function main() {
   server.listen(port, () => console.log('Server running on http://localhost:' + port));
 }
 
+  // Graceful shutdown: flush pending DB writes
+  process.on('SIGINT', async () => {
+    console.log('\n[SERVER] SIGINT received, flushing DB and exiting...');
+    try { await db.flush(); } catch (e) {}
+    process.exit(0);
+  });
+  process.on('SIGTERM', async () => {
+    console.log('\n[SERVER] SIGTERM received, flushing DB and exiting...');
+    try { await db.flush(); } catch (e) {}
+    process.exit(0);
+  });
+}
+
 main().catch(err => { console.error(err); process.exit(1); });
