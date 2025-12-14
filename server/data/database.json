@@ -389,6 +389,32 @@
       "completed": false,
       "createdAt": 1765714361437,
       "id": 24
+    },
+    {
+      "buyerName": "susju",
+      "tableNumber": "11",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 53000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-9424",
+      "completed": false,
+      "createdAt": 1765717691672,
+      "id": 25
     }
   ]
 }

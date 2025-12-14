@@ -131,6 +131,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Load server settings (if API available)
+    window.serverSettings = window.serverSettings || {};
+    (async function loadServerSettings() {
+        try {
+            if (typeof fetchSettingsFromAPI === 'function') {
+                const s = await fetchSettingsFromAPI();
+                window.serverSettings = s || {};
+                console.log('[SETTINGS] loaded', window.serverSettings);
+            }
+        } catch (e) {
+            console.error('Failed to load server settings:', e);
+        }
+    })();
+
     // Deteksi halaman mana yang sedang aktif
     const isOrderPage = document.getElementById('orderForm') !== null;
     const isListPage = document.getElementById('orderList') !== null;
@@ -436,6 +450,75 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(modal);
         }
         
+        // Build EMVCo-style QRIS payload and image URL
+        function tlv(id, value) {
+            const len = String(value.length).padStart(2, '0');
+            return id + len + value;
+        }
+
+        function crc16ccitt(str) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < str.length; i++) {
+                crc ^= str.charCodeAt(i) << 8;
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x8000) !== 0) crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+                    else crc = (crc << 1) & 0xFFFF;
+                }
+            }
+            return crc.toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function formatAmount(n) {
+            if (!n && n !== 0) return '';
+            return Number(n).toFixed(2);
+        }
+
+        function buildEMVQRPayload(o, receipt) {
+                // Default NMID; prefer server-provided setting if available
+                const nm = (o.nmid || (window.serverSettings && window.serverSettings.QRIS_MERCHANT_NMID) || 'ID1025389810363').toString();
+                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'BAZAR HmI';
+                const merchantCity = (window.serverSettings && window.serverSettings.MERCHANT_CITY) || 'MAKASSAR';
+            const amount = formatAmount(o.total || 0);
+
+            // Merchant Account Information (tag 29) — using sub tags: 00=GUI, 01=NMID
+            const mai = tlv('00', 'ID.CO.QRIS') + tlv('01', nm);
+
+            let payload = '';
+            payload += tlv('00', '01'); // Payload Format Indicator
+            payload += tlv('01', '12'); // Point of Initiation Method (12 = dynamic)
+            payload += tlv('29', mai);
+            payload += tlv('52', '0000'); // Merchant Category Code (0000 placeholder)
+            payload += tlv('53', '360'); // Currency: IDR = 360
+            if (amount) payload += tlv('54', amount);
+            payload += tlv('58', 'ID');
+            payload += tlv('59', merchantName);
+            payload += tlv('60', merchantCity);
+            // Additional data field template (62) with receipt/reference in sub tag 01
+            const addData = tlv('01', receipt);
+            payload += tlv('62', addData);
+
+            // Append CRC placeholder and calculate CRC16-CCITT
+            const crcPayload = payload + '6304';
+            const crc = crc16ccitt(crcPayload);
+            payload += tlv('63', crc);
+            return payload;
+        }
+
+        function getQRImageURL(payload) {
+            return 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(payload);
+        }
+
+        let extraQRSection = '';
+        try {
+            if (order.paymentMethod === 'qris') {
+                const payload = buildEMVQRPayload(order, receiptNumber);
+                const qrUrl = getQRImageURL(payload);
+                extraQRSection = `\n                    <div style="text-align: center; margin-top: 15px;">\n                        <p style=\"margin-bottom:8px; font-weight:600;\">Scan untuk membayar via QRIS</p>\n                        <img src=\"${qrUrl}\" alt=\"QRIS Code\" style=\"max-width:260px; margin: 0 auto; display:block; border-radius:8px;\"/>\n                        <div style=\"display:flex; gap:10px; justify-content:center; margin-top:10px;\">\n                            <a href=\"${qrUrl}\" target=\"_blank\" class=\"btn btn-outline-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none;\">Buka Gambar</a>\n                            <a href=\"${qrUrl}\" download=\"${receiptNumber}.png\" class=\"btn btn-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none; color:white;\">Unduh QR</a>\n                        </div>\n                    </div>\n                `;
+            }
+        } catch (e) {
+            console.error('Gagal buat QRIS payload:', e);
+        }
+
         modal.innerHTML = `
             <div style="background: white; border-radius: 12px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
@@ -443,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button type="button" onclick="document.getElementById('receiptModal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">✕</button>
                 </div>
                 ${receiptHTML}
+                ${extraQRSection}
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button onclick="window.print()" class="btn btn-primary" style="flex: 1; background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ Cetak</button>
                     <button onclick="document.getElementById('receiptModal').style.display='none'" class="btn btn-secondary" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Tutup</button>

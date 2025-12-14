@@ -17,6 +17,7 @@ const API_CONFIG = {
         logout: '/api/logout',
         menus: '/api/menus',
         orders: '/api/orders',
+        settings: '/api/settings',
         changePassword: '/api/change-password'
     }
 };
@@ -87,6 +88,16 @@ async function fetchMenusFromAPI() {
         return result.data || {};
     }
     console.error('Failed to fetch menus:', result.data);
+    return {};
+}
+
+// Fetch settings from API
+async function fetchSettingsFromAPI() {
+    const result = await apiCall('settings');
+    if (result.ok) {
+        return result.data || {};
+    }
+    console.error('Failed to fetch settings:', result.data);
     return {};
 }
 

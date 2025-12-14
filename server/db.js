@@ -4,7 +4,7 @@ const fs = require('fs-extra');
 const DB_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DB_DIR, 'database.json');
 
-let state = { users: {}, menus: {}, orders: [] };
+let state = { users: {}, menus: {}, orders: [], settings: {} };
 
 // If RAM_ONLY is set to '1' or 'true', the server will keep data only in memory
 // and will NOT read/write the disk. Useful for lightweight/ephemeral runs.
@@ -16,7 +16,7 @@ const SAVE_DEBOUNCE_MS = 500;
 
 function load() {
   if (RAM_ONLY) {
-    state = { users: {}, menus: {}, orders: [] };
+    state = { users: {}, menus: {}, orders: [], settings: {} };
     return;
   }
 
@@ -25,7 +25,7 @@ function load() {
     try {
       state = fs.readJsonSync(DB_PATH);
     } catch (e) {
-      state = { users: {}, menus: {}, orders: [] };
+      state = { users: {}, menus: {}, orders: [], settings: {} };
     }
   } else {
     try {
@@ -103,6 +103,21 @@ function addOrder(order) {
   return o.id;
 }
 
+function getSettings() {
+  return state.settings || {};
+}
+
+function getSetting(key, defaultValue) {
+  const s = state.settings || {};
+  return typeof s[key] !== 'undefined' ? s[key] : defaultValue;
+}
+
+function setSetting(key, value) {
+  state.settings = state.settings || {};
+  state.settings[key] = value;
+  save();
+}
+
 module.exports = {
   init,
   getUser,
@@ -112,5 +127,8 @@ module.exports = {
   getOrders,
   saveOrders,
   addOrder,
+  getSettings,
+  getSetting,
+  setSetting,
   flush,
 };

@@ -110,6 +110,28 @@ async function main() {
     res.json(menus);
   });
 
+  // Settings (readable by clients). Admins can update.
+  app.get('/api/settings', async (req, res) => {
+    try {
+      const settings = db.getSettings();
+      res.json(settings || {});
+    } catch (e) {
+      res.status(500).json({ error: 'failed to read settings' });
+    }
+  });
+
+  app.post('/api/settings', async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
+    const updates = req.body || {};
+    try {
+      Object.keys(updates).forEach(k => db.setSetting(k, updates[k]));
+      broadcastUpdate('settings_updated', updates);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: 'failed to update settings' });
+    }
+  });
+
   // Validate menu data structure
   function validateMenus(data) {
     if (!data || typeof data !== 'object') {
