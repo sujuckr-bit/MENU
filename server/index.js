@@ -9,6 +9,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const db = require('./db');
+const fileCache = require('./fileCache');
 
 // WebSocket clients
 const wss = new Set();
@@ -28,6 +29,47 @@ async function main() {
   app.use(session({ secret: 'change-this-secret', resave: false, saveUninitialized: false }));
 
   // Serve static files from parent directory
+  // Intercept asset requests and serve from RAM cache for faster repeated access
+  app.get('/assets/*', async (req, res, next) => {
+    try {
+      const rel = req.path.replace(/^\//, ''); // remove leading '/'
+      const fsPath = path.join(__dirname, '..', rel);
+      const entry = await fileCache.get(fsPath);
+
+      // Handle conditional requests (client cache) to aggressively reduce bandwidth
+      const ifNoneMatch = req.headers['if-none-match'];
+      const ifModifiedSince = req.headers['if-modified-since'];
+      if (ifNoneMatch && entry.etag && ifNoneMatch === entry.etag) {
+        res.status(304).end();
+        return;
+      }
+      if (ifModifiedSince) {
+        const since = Date.parse(ifModifiedSince);
+        if (!Number.isNaN(since) && entry.mtimeMs <= since) {
+          res.status(304).end();
+          return;
+        }
+      }
+
+      res.setHeader('Content-Type', entry.type);
+      res.setHeader('Content-Length', entry.size);
+      if (entry.etag) res.setHeader('ETag', entry.etag);
+      if (entry.lastModified) res.setHeader('Last-Modified', entry.lastModified);
+      
+      // For hashed/versioned assets (*.min.js, *.min.css, or hash-named files), use immutable
+      if (fileCache._isHashedAsset(fsPath)) {
+        res.setHeader('Cache-Control', 'public, immutable, max-age=31536000');
+      } else {
+        // For non-hashed assets, use aggressive revalidation window
+        res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+      }
+      return res.send(entry.buffer);
+    } catch (e) {
+      return next();
+    }
+  });
+
+  // Fall back to express static for other files
   app.use(express.static(path.join(__dirname, '..')));
 
   // Root route
@@ -295,7 +337,7 @@ async function main() {
   });
 
   server.listen(port, () => console.log('Server running on http://localhost:' + port));
-}
+  }
 
   // Graceful shutdown: flush pending DB writes
   process.on('SIGINT', async () => {
@@ -308,6 +350,5 @@ async function main() {
     try { await db.flush(); } catch (e) {}
     process.exit(0);
   });
-}
 
 main().catch(err => { console.error(err); process.exit(1); });
