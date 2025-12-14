@@ -108,53 +108,103 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     const order = data || {};
                     if (!order.id) order.id = Date.now().toString();
-                    const orders = getOrders();
-                    orders.push(order);
-                    saveOrders(orders);
-                    if (typeof loadOrders === 'function') loadOrders();
-                    if (typeof displayMyOrders === 'function') displayMyOrders();
-                    console.log('Realtime: new order', order.id);
-                } catch (e) { console.error('Realtime order_created handler error', e); }
-            });
+                    // Build card DOM safely (avoid embedding raw JSON into HTML attributes)
+                    const card = document.createElement('div');
+                    card.className = 'card mb-4';
+                    card.style.cssText = 'border-left: 5px solid #17a2b8; border-radius: 8px;';
 
-            realtime.on('order_updated', (order) => {
-                try {
-                    if (!order || !order.id) return;
-                    const orders = getOrders();
-                    const idx = orders.findIndex(o => o.id == order.id);
-                    if (idx !== -1) { orders[idx] = order; saveOrders(orders); }
-                    if (typeof loadOrders === 'function') loadOrders();
-                    if (typeof displayMyOrders === 'function') displayMyOrders();
-                    console.log('Realtime: order updated', order.id);
-                } catch (e) { console.error('Realtime order_updated handler error', e); }
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body';
+
+                    const row = document.createElement('div');
+                    row.className = 'row mb-3';
+
+                    const left = document.createElement('div');
+                    left.className = 'col-md-6';
+                    left.innerHTML = `<p class="mb-1"><strong>👤 Nama Pembeli:</strong> ${order.buyerName}</p>
+                                      <p class="mb-1"><strong>🪑 Nomor Meja:</strong> ${order.tableNumber}</p>
+                                      <p class="mb-0"><strong>📅 ID Pesanan:</strong> <code>${order.id}</code></p>`;
+
+                    const right = document.createElement('div');
+                    right.className = 'col-md-6 text-md-end';
+                    right.innerHTML = `<p class="mb-3">${statusBadge}</p>
+                                       <p><strong>💰 Total:</strong> <span style="color: #17a2b8; font-size: 1.3rem; font-weight: bold;">${formatCurrency(order.total)}</span></p>`;
+
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    cardBody.appendChild(row);
+
+                    const hr = document.createElement('hr');
+                    cardBody.appendChild(hr);
+
+                    const h6 = document.createElement('h6');
+                    h6.className = 'fw-bold mb-3';
+                    h6.textContent = '📋 Detail Item:';
+                    cardBody.appendChild(h6);
+
+                    const tableWrap = document.createElement('div');
+                    tableWrap.className = 'table-responsive';
+                    const table = document.createElement('table');
+                    table.className = 'table table-sm mb-0';
+                    table.innerHTML = `<thead style="background-color: #f8f9fb;"><tr>
+                                                <th style="color: #1a3a52; font-weight: 600;">Nama Item</th>
+                                                <th style="color: #1a3a52; font-weight: 600;">Kategori</th>
+                                                <th style="color: #1a3a52; font-weight: 600;">Jumlah</th>
+                                                <th class="text-end" style="color: #1a3a52; font-weight: 600;">Subtotal</th>
+                                            </tr></thead><tbody>${itemsList}</tbody>`;
+                    tableWrap.appendChild(table);
+                    cardBody.appendChild(tableWrap);
+
+                    const actionRow = document.createElement('div');
+                    actionRow.className = 'mt-3 d-flex justify-content-between align-items-center';
+
+                    const leftBadge = document.createElement('div');
+                    leftBadge.innerHTML = qrisBadge;
+                    actionRow.appendChild(leftBadge);
+
+                    const actions = document.createElement('div');
+
+                    const receiptBtn = document.createElement('button');
+                    receiptBtn.type = 'button';
+                    receiptBtn.className = 'btn btn-sm btn-outline-primary me-2';
+                    receiptBtn.textContent = '🧾 Lihat Struk';
+                    receiptBtn.addEventListener('click', () => {
+                        try { showReceiptModal(order); } catch (e) { console.error(e); }
+                    });
+                    actions.appendChild(receiptBtn);
+
+                    if (order.paymentMethod === 'qris') {
+                        const qrBtn = document.createElement('button');
+                        qrBtn.type = 'button';
+                        qrBtn.className = 'btn btn-sm btn-primary';
+                        qrBtn.textContent = '🔍 Lihat QR';
+                        qrBtn.addEventListener('click', () => {
+                            try { showReceiptModal(order); } catch (e) { console.error(e); }
+                        });
+                        actions.appendChild(qrBtn);
+                    }
+
+                    actionRow.appendChild(actions);
+                    cardBody.appendChild(actionRow);
+
+                    card.appendChild(cardBody);
+                    myOrdersContainer.appendChild(card);
+                } catch (e) { console.error('Error creating order card:', e); }
             });
         }
     }
 
-    // Load server settings (if API available)
-    window.serverSettings = window.serverSettings || {};
-    (async function loadServerSettings() {
-        try {
-            if (typeof fetchSettingsFromAPI === 'function') {
-                const s = await fetchSettingsFromAPI();
-                window.serverSettings = s || {};
-                console.log('[SETTINGS] loaded', window.serverSettings);
-            }
-        } catch (e) {
-            console.error('Failed to load server settings:', e);
-        }
-    })();
-
-    // Deteksi halaman mana yang sedang aktif
-    const isOrderPage = document.getElementById('orderForm') !== null;
-    const isListPage = document.getElementById('orderList') !== null;
-    const isMyOrdersPage = document.getElementById('myOrdersContainer') !== null;
-
-    const submitBtn = document.querySelector('button[type="submit"]');
+    // Safely reference submit button if present on the page
+    const submitBtn = document.getElementById('submitBtn');
     const initialSubmitText = submitBtn ? submitBtn.textContent : 'Simpan Pesanan';
     let editingId = null;
     let cart = [];
-    
+
+    // Page detection flags (safe defaults) — avoids ReferenceError when elements missing
+    const isOrderPage = !!document.getElementById('orderForm');
+    const isListPage = !!document.getElementById('orderList') || !!document.getElementById('orderTable');
+    const isMyOrdersPage = !!document.getElementById('myOrdersContainer') || !!document.getElementById('myOrders');
+
     // Debug info
     console.log('[SCRIPT] Script.js loaded - Page detection:', { isOrderPage, isListPage, isMyOrdersPage });
 
@@ -253,6 +303,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     window.saveMenusToStorage = saveMenusToStorage;
     window.menus = menus; // expose for debugging/admin pages
+
+    // Safe helper to fetch menus from API if available
+    async function fetchMenusFromAPI() {
+        // Prefer existing apiCall helper if present
+        if (typeof apiCall === 'function') {
+            try {
+                const res = await apiCall('menus');
+                if (res && res.ok) return res.data || null;
+                return null;
+            } catch (e) {
+                throw e;
+            }
+        }
+
+        // Fallback to direct fetch if available
+        try {
+            // Prefer getApiUrl() if available, otherwise use API_CONFIG.baseUrl when present
+            // Fallback to localhost:3000 if no API helper is available (frontend server runs on :8000)
+            let url = null;
+            if (typeof getApiUrl === 'function') {
+                url = getApiUrl('menus');
+            } else if (window.API_CONFIG && API_CONFIG.baseUrl) {
+                url = API_CONFIG.baseUrl + (API_CONFIG.endpoints && API_CONFIG.endpoints.menus ? API_CONFIG.endpoints.menus : '/api/menus');
+            } else {
+                // Construct fallback base URL
+                let base = 'http://localhost:3000';
+                try {
+                    const host = window.location.hostname;
+                    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+                        base = window.location.protocol + '//' + host + ':3000';
+                    }
+                } catch (e) {
+                    // ignore and use default
+                }
+                url = base + '/api/menus';
+            }
+            const r = await fetch(url, { credentials: 'include' });
+            const ct = (r.headers.get && r.headers.get('content-type') || '').toLowerCase();
+            if (r.ok && ct.includes('application/json')) {
+                return await r.json();
+            }
+            return null;
+        } catch (e) {
+            throw e;
+        }
+    }
 
     // Try to load menus from API on startup
     (async function loadMenusFromAPI() {
@@ -360,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentMethod = order.paymentMethod === 'qris' ? '📱 QRIS' : '💵 Tunai (Cash)';
         
         return `
-            <div style="max-width: 400px; margin: 0 auto; font-family: 'Courier New', monospace; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <div class="receipt-content" style="max-width: 400px; width:100%; margin: 0 auto; font-family: 'Courier New', monospace; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
                 <div style="text-align: center; margin-bottom: 20px;">
                     <h3 style="margin: 0; color: #1a3a52;">STRUK PEMESANAN</h3>
                     <p style="margin: 5px 0; color: #666; font-size: 12px;">BAZAR HmI</p>
@@ -513,7 +609,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (order.paymentMethod === 'qris') {
                 const payload = buildEMVQRPayload(order, receiptNumber);
                 const qrUrl = getQRImageURL(payload);
-                extraQRSection = `\n                    <div style="text-align: center; margin-top: 15px;">\n                        <p style=\"margin-bottom:8px; font-weight:600;\">Scan untuk membayar via QRIS</p>\n                        <img src=\"${qrUrl}\" alt=\"QRIS Code\" style=\"max-width:260px; margin: 0 auto; display:block; border-radius:8px;\"/>\n                        <div style=\"display:flex; gap:10px; justify-content:center; margin-top:10px;\">\n                            <a href=\"${qrUrl}\" target=\"_blank\" class=\"btn btn-outline-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none;\">Buka Gambar</a>\n                            <a href=\"${qrUrl}\" download=\"${receiptNumber}.png\" class=\"btn btn-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none; color:white;\">Unduh QR</a>\n                        </div>\n                    </div>\n                `;
+                // Log payload & URL for debugging (useful to inspect NMID / CRC)
+                console.log('[QRIS] Payload:', payload);
+                console.log('[QRIS] QR Image URL:', qrUrl);
+                extraQRSection = `\n                    <div style="text-align: center; margin-top: 15px;">\n                        <p style=\"margin-bottom:8px; font-weight:600;\">Scan untuk membayar via QRIS</p>\n                        <img src=\"${qrUrl}\" alt=\"QRIS Code\" style=\"max-width:260px; margin: 0 auto; display:block; border-radius:8px;\"/>\n                        <div style=\"display:flex; gap:10px; justify-content:center; margin-top:10px;\">\n                            <a href=\"${qrUrl}\" target=\"_blank\" class=\"btn btn-outline-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none;\">Buka Gambar</a>\n                            <a href=\"${qrUrl}\" download=\"${receiptNumber}.png\" class=\"btn btn-primary\" style=\"padding:6px 10px; border-radius:6px; text-decoration:none; color:white;\">Unduh QR</a>\n                        </div>\n                        <div style=\"margin-top:10px;\">\n                            <button id=\"copyQrisPayloadBtn\" class=\"btn btn-sm btn-outline-secondary\" style=\"margin-top:8px;\">Salin Payload</button>\n                            <textarea id=\"qrisPayloadArea\" style=\"display:none;\">${payload}</textarea>\n                        </div>\n                    </div>\n                `;
             }
         } catch (e) {
             console.error('Gagal buat QRIS payload:', e);
@@ -532,17 +631,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button onclick="document.getElementById('receiptModal').style.display='none'" class="btn btn-secondary" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Tutup</button>
                 </div>
                 <style>
+                    @page { size: 80mm auto; margin: 3mm; }
                     @media print {
-                        body * { display: none !important; }
-                        #receiptModal { display: flex !important; position: static !important; background: white !important; }
-                        #receiptModal > div { max-width: 100% !important; padding: 0 !important; }
+                        /* hide everything except the modal/receipt */
+                        body * { visibility: hidden !important; }
+                        #receiptModal, #receiptModal * { visibility: visible !important; }
+                        #receiptModal { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; display: block !important; background: white !important; }
+                        #receiptModal > div { margin: 0 auto !important; box-shadow: none !important; width: 80mm !important; max-width: 100% !important; border-radius: 0 !important; padding: 0 !important; }
+                        .receipt-content { width: 100% !important; padding: 6mm !important; background: transparent !important; border: none !important; }
+                        .receipt-content hr { border: none !important; border-top: 1px dashed #999 !important; }
+                        img { max-width: 100% !important; height: auto !important; }
                         .btn { display: none !important; }
                     }
                 </style>
             </div>
         `;
         modal.style.display = 'flex';
+
+        // Wire up copy button (if present)
+        const copyBtn = document.getElementById('copyQrisPayloadBtn');
+        const payloadArea = document.getElementById('qrisPayloadArea');
+        if (copyBtn && payloadArea) {
+            copyBtn.addEventListener('click', () => {
+                try {
+                    payloadArea.style.display = 'block';
+                    payloadArea.select();
+                    document.execCommand('copy');
+                    payloadArea.style.display = 'none';
+                    showToast('✅ Payload QRIS disalin ke clipboard', 'success');
+                } catch (e) {
+                    console.error('Copy payload failed', e);
+                    showToast('❌ Gagal menyalin payload', 'error');
+                }
+            });
+        }
     }
+
+    // Expose to global scope so inline `onclick` handlers can call it
+    window.showReceiptModal = showReceiptModal;
 
     // Halaman Pesan (pesan.html)
     if (isOrderPage) {
@@ -1050,7 +1176,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (exportBtn) exportBtn.disabled = false;
             if (importBtn) importBtn.disabled = false;
 
-            if (orders.length === 0) {
+            // If no explicit filter entered and we have a stored lastBuyerName, default to showing that user's orders
+            const lastBuyer = (localStorage.getItem('lastBuyerName') || '').toLowerCase().trim();
+            // Safely get filter inputs if present on the page (daftar.html may not have them)
+            const filterNameEl = document.getElementById('filterName');
+            const filterTableEl = document.getElementById('filterTable');
+            const hasFilterInputs = (filterNameEl && filterNameEl.value.trim() !== '') || (filterTableEl && filterTableEl.value.trim() !== '');
+            let finalOrders = orders;
+            if (!hasFilterInputs && lastBuyer) {
+                finalOrders = orders.filter(o => (o.buyerName || '').toLowerCase() === lastBuyer);
+            }
+
+            if (finalOrders.length === 0) {
                 if (noOrdersMsg) noOrdersMsg.style.display = 'block';
                 return;
             }
@@ -1369,14 +1506,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!myOrdersContainer) return;
             myOrdersContainer.innerHTML = '';
 
-            if (orders.length === 0) {
+            let finalOrders = orders;
+
+            if (finalOrders.length === 0) {
                 if (noOrdersMsg) noOrdersMsg.style.display = 'block';
                 return;
             }
 
             if (noOrdersMsg) noOrdersMsg.style.display = 'none';
 
-            orders.forEach((order) => {
+            finalOrders.forEach((order) => {
                 const statusBadge = order.completed ? 
                     '<span class="badge bg-success">✅ Selesai</span>' : 
                     '<span class="badge bg-warning">⏳ Sedang Diproses</span>';
@@ -1390,42 +1529,81 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>`
                 ).join('');
 
-                const orderCard = `
-                    <div class="card mb-4" style="border-left: 5px solid #17a2b8; border-radius: 8px;">
-                        <div class="card-body">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>👤 Nama Pembeli:</strong> ${order.buyerName}</p>
-                                    <p class="mb-1"><strong>🪑 Nomor Meja:</strong> ${order.tableNumber}</p>
-                                    <p class="mb-0"><strong>📅 ID Pesanan:</strong> <code>${order.id}</code></p>
-                                </div>
-                                <div class="col-md-6 text-md-end">
-                                    <p class="mb-3">${statusBadge}</p>
-                                    <p><strong>💰 Total:</strong> <span style="color: #17a2b8; font-size: 1.3rem; font-weight: bold;">${formatCurrency(order.total)}</span></p>
-                                </div>
-                            </div>
-                            <hr>
-                            <h6 class="fw-bold mb-3">📋 Detail Item:</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm mb-0">
-                                    <thead style="background-color: #f8f9fb;">
-                                        <tr>
-                                            <th style="color: #1a3a52; font-weight: 600;">Nama Item</th>
-                                            <th style="color: #1a3a52; font-weight: 600;">Kategori</th>
-                                            <th style="color: #1a3a52; font-weight: 600;">Jumlah</th>
-                                            <th class="text-end" style="color: #1a3a52; font-weight: 600;">Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${itemsList}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const qrisBadge = order.paymentMethod === 'qris' ? '<span class="badge bg-info">📱 QRIS</span>' : '';
 
-                myOrdersContainer.innerHTML += orderCard;
+                // Build card DOM safely (avoid embedding raw JSON into HTML attributes)
+                const card = document.createElement('div');
+                card.className = 'card mb-4';
+                card.style.cssText = 'border-left: 5px solid #17a2b8; border-radius: 8px;';
+
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+
+                const row = document.createElement('div');
+                row.className = 'row mb-3';
+
+                const left = document.createElement('div');
+                left.className = 'col-md-6';
+                left.innerHTML = `<p class="mb-1"><strong>👤 Nama Pembeli:</strong> ${order.buyerName}</p>\n                              <p class="mb-1"><strong>🪑 Nomor Meja:</strong> ${order.tableNumber}</p>\n                              <p class="mb-0"><strong>📅 ID Pesanan:</strong> <code>${order.id}</code></p>`;
+
+                const right = document.createElement('div');
+                right.className = 'col-md-6 text-md-end';
+                right.innerHTML = `<p class="mb-3">${statusBadge}</p>\n                               <p><strong>💰 Total:</strong> <span style="color: #17a2b8; font-size: 1.3rem; font-weight: bold;">${formatCurrency(order.total)}</span></p>`;
+
+                row.appendChild(left);
+                row.appendChild(right);
+                cardBody.appendChild(row);
+
+                const hr = document.createElement('hr');
+                cardBody.appendChild(hr);
+
+                const h6 = document.createElement('h6');
+                h6.className = 'fw-bold mb-3';
+                h6.textContent = '📋 Detail Item:';
+                cardBody.appendChild(h6);
+
+                const tableWrap = document.createElement('div');
+                tableWrap.className = 'table-responsive';
+                const table = document.createElement('table');
+                table.className = 'table table-sm mb-0';
+                table.innerHTML = `<thead style="background-color: #f8f9fb;">\n                                        <tr>\n                                            <th style="color: #1a3a52; font-weight: 600;">Nama Item</th>\n                                            <th style="color: #1a3a52; font-weight: 600;">Kategori</th>\n                                            <th style="color: #1a3a52; font-weight: 600;">Jumlah</th>\n                                            <th class="text-end" style="color: #1a3a52; font-weight: 600;">Subtotal</th>\n                                        </tr>\n                                    </thead><tbody>${itemsList}</tbody>`;
+                tableWrap.appendChild(table);
+                cardBody.appendChild(tableWrap);
+
+                const actionRow = document.createElement('div');
+                actionRow.className = 'mt-3 d-flex justify-content-between align-items-center';
+
+                const leftBadge = document.createElement('div');
+                leftBadge.innerHTML = qrisBadge;
+                actionRow.appendChild(leftBadge);
+
+                const actions = document.createElement('div');
+
+                const receiptBtn = document.createElement('button');
+                receiptBtn.type = 'button';
+                receiptBtn.className = 'btn btn-sm btn-outline-primary me-2';
+                receiptBtn.textContent = '🧾 Lihat Struk';
+                receiptBtn.addEventListener('click', () => {
+                    try { showReceiptModal(order); } catch (e) { console.error(e); }
+                });
+                actions.appendChild(receiptBtn);
+
+                if (order.paymentMethod === 'qris') {
+                    const qrBtn = document.createElement('button');
+                    qrBtn.type = 'button';
+                    qrBtn.className = 'btn btn-sm btn-primary';
+                    qrBtn.textContent = '🔍 Lihat QR';
+                    qrBtn.addEventListener('click', () => {
+                        try { showReceiptModal(order); } catch (e) { console.error(e); }
+                    });
+                    actions.appendChild(qrBtn);
+                }
+
+                actionRow.appendChild(actions);
+                cardBody.appendChild(actionRow);
+
+                card.appendChild(cardBody);
+                myOrdersContainer.appendChild(card);
             });
         }
 
@@ -1532,6 +1710,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         showToast('✅ Logout berhasil', 'success');
                         window.location.href = 'admin-login.html';
                     });
+                });
+            }
+
+            // QRIS settings form handlers
+            const qrisForm = document.getElementById('adminQrisForm');
+            const qrisNmidInput = document.getElementById('qrisNmid');
+            const qrisMerchantNameInput = document.getElementById('qrisMerchantName');
+            const qrisMerchantCityInput = document.getElementById('qrisMerchantCity');
+
+            async function loadQrisSettings() {
+                try {
+                    if (typeof fetchSettingsFromAPI === 'function') {
+                        const s = await fetchSettingsFromAPI();
+                        window.serverSettings = s || {};
+                        if (qrisNmidInput) qrisNmidInput.value = s.QRIS_MERCHANT_NMID || '';
+                        if (qrisMerchantNameInput) qrisMerchantNameInput.value = s.MERCHANT_NAME || '';
+                        if (qrisMerchantCityInput) qrisMerchantCityInput.value = s.MERCHANT_CITY || '';
+                    }
+                } catch (e) {
+                    console.error('Gagal load settings:', e);
+                }
+            }
+
+            if (qrisForm) {
+                // populate current values
+                loadQrisSettings();
+
+                qrisForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const nm = qrisNmidInput ? qrisNmidInput.value.trim() : '';
+                    const nmName = qrisMerchantNameInput ? qrisMerchantNameInput.value.trim() : '';
+                    const nmCity = qrisMerchantCityInput ? qrisMerchantCityInput.value.trim() : '';
+                    if (!nm) { showToast('❌ NMID tidak boleh kosong', 'error'); return; }
+                    try {
+                        const ok = await apiCall('settings', {
+                            method: 'POST',
+                            body: JSON.stringify({ QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity })
+                        });
+                        if (ok && ok.ok) {
+                            showToast('✅ Pengaturan QRIS berhasil disimpan', 'success');
+                            // refresh local settings
+                            window.serverSettings = { ...(window.serverSettings || {}), QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity };
+                        } else {
+                            showToast('❌ Gagal menyimpan pengaturan', 'error');
+                            console.error('Save settings failed', ok);
+                        }
+                    } catch (err) {
+                        console.error('Error saving settings:', err);
+                        showToast('❌ Terjadi kesalahan saat menyimpan', 'error');
+                    }
                 });
             }
         }

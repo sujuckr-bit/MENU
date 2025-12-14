@@ -1,0 +1,4 @@
+const fs=require('fs'); const s=fs.readFileSync('c:/Users/DELL/Desktop/MENU/script.js','utf8');
+let stack=[]; let inStr=null; let esc=false; let line=1; for(let i=0;i<s.length;i++){ const ch=s[i]; if(ch==='\n') line++; if(inStr){ if(esc){ esc=false; } else if(ch==='\\') esc=true; else if(ch===inStr) inStr=null; continue;} if(ch==='"'||ch==="'"||ch==='`'){ inStr=ch; continue;} if(ch==='('||ch==='{'||ch==='[') stack.push({ch,line,pos:i}); else if(ch===')'||ch==='}'||ch===']'){ if(stack.length===0){ console.log('Unmatched closing',ch,'at line',line); process.exit(1);} const last=stack.pop(); const pairs={'(':')','{':'}','[':']'}; if(pairs[last.ch]!==ch){ console.log('Mismatched',last.ch,'opened at',last.line,'but closed by',ch,'at',line); process.exit(1);} }
+}
+if(stack.length>0){ const last=stack[stack.length-1]; console.log('Unclosed opener',last.ch,'at line',last.line); process.exit(1);} console.log('BRACES_OK');

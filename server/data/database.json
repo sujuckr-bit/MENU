@@ -4,6 +4,11 @@
       "passwordHash": "$2a$10$b6Rr7SiVKJ4.oIRSVWU/SeshcL/tpn8E28Ax3KV3NLWq7xnOcfwBu"
     }
   },
+  "settings": {
+    "QRIS_MERCHANT_NMID": "ID1025389810363",
+    "MERCHANT_NAME": "SERVIS KOMPUTER",
+    "MERCHANT_CITY": "Makassar"
+  },
   "menus": {},
   "orders": [
     {
@@ -415,6 +420,108 @@
       "completed": false,
       "createdAt": 1765717691672,
       "id": 25
+    },
+    {
+      "buyerName": "jos",
+      "tableNumber": "2",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 53000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-7945",
+      "completed": false,
+      "createdAt": 1765717940576,
+      "id": 26
+    },
+    {
+      "buyerName": "SUJU",
+      "tableNumber": "12",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-1305",
+      "completed": false,
+      "createdAt": 1765718476048,
+      "id": 27
+    },
+    {
+      "buyerName": "ju",
+      "tableNumber": "9",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Milo (Hot/Ice)",
+          "price": 27000,
+          "quantity": 1,
+          "subtotal": 27000
+        }
+      ],
+      "total": 27000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-3873",
+      "completed": false,
+      "createdAt": 1765718756866,
+      "id": 28
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kuku Bima Susu",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-1851",
+      "completed": false,
+      "createdAt": 1765720304075,
+      "id": 29
+    },
+    {
+      "buyerName": "SUJU",
+      "tableNumber": "2",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kuku Bima Susu",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-9674",
+      "completed": false,
+      "createdAt": 1765722474449,
+      "id": 30
     }
   ]
 }

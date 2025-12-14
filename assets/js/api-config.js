@@ -39,11 +39,38 @@ async function apiCall(endpoint, options = {}) {
     };
 
     const finalOptions = { ...defaultOptions, ...options };
-    
+
     try {
         const response = await fetch(url, finalOptions);
-        const data = await response.json();
-        
+
+        // Safely parse body only when appropriate
+        const ct = (response.headers.get('content-type') || '').toLowerCase();
+        let data = null;
+
+        if (response.status === 204 || response.status === 205) {
+            data = null; // No content
+        } else if (ct.includes('application/json')) {
+            try {
+                data = await response.json();
+            } catch (e) {
+                console.warn(`Failed to parse JSON response from ${url}:`, e);
+                data = null;
+            }
+        } else {
+            // If not JSON, attempt to read text. If text is JSON-like, try parse, otherwise return text.
+            try {
+                const text = await response.text();
+                if (text) {
+                    try { data = JSON.parse(text); } catch (e) { data = text; }
+                } else {
+                    data = null;
+                }
+            } catch (e) {
+                console.warn(`Failed to read non-JSON response from ${url}:`, e);
+                data = null;
+            }
+        }
+
         return {
             ok: response.ok,
             status: response.status,
