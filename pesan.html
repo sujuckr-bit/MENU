@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesan Makanan & Minuman - BAZAR HmI</title>
+    <title>Pesan Makanan & Minuman - Himpunan Mahasiswa Islam</title>
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/vendor/aos/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-additions.css">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
     <link rel="icon" href="assets/img/favicon-16.png" sizes="16x16">
@@ -20,7 +21,7 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
                 <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
-                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
+                <span style="color: #00a856;">Himpunan Mahasiswa</span> <span style="color: #00a856;">Islam</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -37,7 +38,7 @@
                         <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="pesan.html" class="btn btn-primary btn-sm px-4 active" style="background: #17a2b8; border: none; border-radius: 6px; color: white; font-weight: 600; border-bottom: 3px solid #0d6efd;">📝 Buat Pesanan</a>
+                        <a href="pesan.html" class="btn btn-primary btn-sm px-4 active" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px; color: white; font-weight: 600;"><i class="bi bi-pencil-square me-2"></i>Buat Pesanan</a>
                     </li>
                 </ul>
             </div>
@@ -46,39 +47,40 @@
 
     <div class="container my-5">
         <div class="mb-5">
-            <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52;">📝 Pesan Makanan & Minuman</h1>
-            <p class="lead text-muted">Pesan dengan mudah dan cepat melalui platform kami</p>
+            <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52; letter-spacing: -0.5px;"><i class="bi bi-clipboard-check" style="color: #00a856;"></i> Pesan Makanan & Minuman</h1>
+            <p class="lead" style="color: #666; font-weight: 500;">Pesan dengan mudah dan cepat melalui platform kami - Pilih menu favorit Anda sekarang!</p>
         </div>
 
-        <div class="card shadow-lg border-0 mb-4" style="border-radius: 12px;">
-            <div class="card-header" style="background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); color: white; border-radius: 12px 12px 0 0;">
-                <h5 class="mb-0" style="font-weight: 600;">📋 Form Pemesanan</h5>
+        <div class="card shadow-lg border-0 mb-4" style="border-radius: 14px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); color: white; border-radius: 14px 14px 0 0; padding: 1.5rem;">
+                <h5 class="mb-0" style="font-weight: 700; font-size: 1.1rem; letter-spacing: -0.3px;"><i class="bi bi-list-check me-2"></i>Form Pemesanan</h5>
+                <p class="mb-0 mt-2" style="font-size: 0.9rem; opacity: 0.95;">Lengkapi data pesanan Anda di bawah</p>
             </div>
             <div class="card-body p-4">
                 <form id="orderForm">
                     <div class="row g-4">
                         <div class="col-md-6">
-                            <label for="buyerName" class="form-label fw-bold" style="color: #1a3a52;">Nama Pembeli:</label>
+                            <label for="buyerName" class="form-label fw-bold" style="color: #1a3a52;"><i class="bi bi-person-fill" style="color: #00a856;"></i> Nama Pembeli:</label>
                             <input type="text" id="buyerName" class="form-control" placeholder="Masukkan nama pembeli" required>
                         </div>
                         
                         <div class="col-md-6">
-                            <label for="category" class="form-label fw-bold" style="color: #1a3a52;">Kategori:</label>
+                            <label for="category" class="form-label fw-bold" style="color: #1a3a52;"><i class="bi bi-tag-fill" style="color: #00a856;"></i> Kategori:</label>
                             <select id="category" class="form-select" required>
                                 <option value="">Pilih kategori</option>
-                                <option value="Minum">🥤 Minum</option>
-                                <option value="Makan">🍽️ Makan</option>
+                                <option value="Minum"><i class="bi bi-cup-straw"></i> Minum</option>
+                                <option value="Makan"><i class="bi bi-cup-hot"></i> Makan</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="itemSelect" class="form-label fw-bold" style="color: #1a3a52;">Item (pilih):</label>
+                            <label for="itemSelect" class="form-label fw-bold" style="color: #1a3a52;"><i class="bi bi-basket-fill" style="color: #00a856;"></i> Item (pilih):</label>
                             <div id="itemSearchContainer" style="position: relative;">
                                 <div class="input-group mb-2">
                                     <input id="itemSearch" type="search" class="form-control" placeholder="Cari item (nama atau harga)... Tekan '/' untuk fokus" title="Tekan '/' di mana saja untuk fokus ke pencarian" autocomplete="off">
                                     <button id="clearSearch" type="button" class="btn btn-outline-secondary">Clear</button>
                                 </div>
-                                <small class="text-muted d-block mb-2">💡 Tip: Tekan <kbd>/</kbd> di keyboard untuk fokus pencarian dengan cepat</small>
+                                    <small class="text-muted d-block mb-2"><i class="bi bi-lightbulb" style=\"color: #00a856;\"></i> Tip: Tekan <kbd>/</kbd> di keyboard untuk fokus pencarian dengan cepat</small>
                                 <!-- Custom dropdown untuk hasil pencarian dengan highlight -->
                                 <div id="searchResults" class="list-group" style="max-height: 300px; overflow-y: auto; display: none; position: absolute; top: 80px; left: 0; right: 0; z-index: 1000; background: white; border: 1px solid #dee2e6; border-radius: 8px;">
                                     <!-- Hasil pencarian akan ditampilkan di sini -->
@@ -98,11 +100,11 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="paymentMethod" class="form-label fw-bold" style="color: #1a3a52;">💳 Metode Pembayaran:</label>
+                            <label for="paymentMethod" class="form-label fw-bold" style="color: #1a3a52;"><i class="bi bi-credit-card" style="color: #00a856;"></i> Metode Pembayaran:</label>
                             <select id="paymentMethod" class="form-select" required>
                                 <option value="">Pilih metode pembayaran</option>
-                                <option value="cash">💵 Tunai (Cash)</option>
-                                <option value="qris">📱 QRIS</option>
+                                <option value="cash"><i class="bi bi-cash-coin"></i> Tunai (Cash)</option>
+                                <option value="qris"><i class="bi bi-qr-code"></i> QRIS</option>
                             </select>
                             <div class="form-text">Pilih metode pembayaran yang diinginkan.</div>
                         </div>
@@ -124,10 +126,10 @@
                     </div>
 
                     <button type="button" id="addToCartBtn" class="btn btn-lg w-100 mt-4 mb-4" style="background: #ffc107; color: #000; font-weight: 600; border-radius: 8px;">
-                        🛒 Tambah ke Keranjang
+                        <i class="bi bi-cart-plus me-1" style="color: #00a856;"></i> Tambah ke Keranjang
                     </button>
 
-                    <h5 class="fw-bold mb-3" style="color: #1a3a52;">📦 Keranjang Pesanan</h5>
+                    <h5 class="fw-bold mb-3" style="color: #1a3a52;"><i class="bi bi-bag-check" style="color: #00a856;"></i> Keranjang Pesanan</h5>
                     <div class="table-responsive mb-4">
                         <table id="cartTable" class="table table-hover">
                             <thead style="background-color: #f8f9fb;">
@@ -164,7 +166,7 @@
         <div class="container">
             <div class="row mb-5">
                 <div class="col-md-4 mb-4 mb-md-0">
-                    <h5 class="fw-bold mb-3" style="color: white;">BAZAR HmI</h5>
+                    <h5 class="fw-bold mb-3" style="color: #00a856;">Himpunan Mahasiswa Islam</h5>
                     <p style="color: #aaa;">Platform pemesanan makanan dan minuman yang mudah dan cepat.</p>
                 </div>
                 <div class="col-md-4 mb-4 mb-md-0">
@@ -183,7 +185,7 @@
             </div>
             <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0;">
             <div class="text-center">
-                <p style="color: #aaa; margin-bottom: 0;">© 2024 BAZAR HmI - Himpunan Mahasiswa Islam Komisariat Handayani. All rights reserved.</p>
+                <p style="color: #aaa; margin-bottom: 0;">© 2024 Himpunan Mahasiswa Islam Komisariat Handayani. All rights reserved.</p>
             </div>
         </div>
     </footer>

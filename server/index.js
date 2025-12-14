@@ -42,10 +42,11 @@ async function main() {
       if (ifNoneMatch && entry.etag && ifNoneMatch === entry.etag) {
         res.status(304).end();
         return;
-      }
+    const QRISPaymentService = require('./qris-payment');
       if (ifModifiedSince) {
         const since = Date.parse(ifModifiedSince);
         if (!Number.isNaN(since) && entry.mtimeMs <= since) {
+    const qrisPayment = new QRISPaymentService();
           res.status(304).end();
           return;
         }

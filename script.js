@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => waitForXLSX(callback, attempt + 1), 100);
         } else {
             console.error('XLSX library gagal ter-load');
-            showToast('❌ Library Excel gagal ter-load. Refresh halaman.', 'error');
+            showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Library Excel gagal ter-load. Refresh halaman.', 'error');
         }
 
         // Realtime handlers (if realtime client loaded)
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const h6 = document.createElement('h6');
                     h6.className = 'fw-bold mb-3';
-                    h6.textContent = '📋 Detail Item:';
+                    h6.innerHTML = '<i class="bi bi-list-check" style="color: #00a856; margin-right: 6px;"></i>Detail Item:';
                     cardBody.appendChild(h6);
 
                     const tableWrap = document.createElement('div');
@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const receiptBtn = document.createElement('button');
                     receiptBtn.type = 'button';
                     receiptBtn.className = 'btn btn-sm btn-outline-primary me-2';
-                    receiptBtn.textContent = '🧾 Lihat Struk';
+                    receiptBtn.innerHTML = '<i class="bi bi-receipt me-1"></i>Lihat Struk';
                     receiptBtn.addEventListener('click', () => {
                         try { showReceiptModal(order); } catch (e) { console.error(e); }
                     });
@@ -444,78 +444,82 @@ document.addEventListener('DOMContentLoaded', function() {
         let itemsHTML = '';
         const items = order.items || [];
         items.forEach(item => {
+            const subtotal = (item.price * item.quantity);
             itemsHTML += `
-                <tr>
-                    <td>${item.itemName || item.name}</td>
-                    <td style="text-align: right;">${item.quantity || 1}x</td>
-                    <td style="text-align: right;">Rp${(item.price || 0).toLocaleString('id-ID')}</td>
+                <tr style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 6px 0; text-align: left; font-size: 11px;">${item.itemName || item.name}</td>
+                    <td style="padding: 6px 0; text-align: center; font-size: 11px;">${item.quantity}x</td>
+                    <td style="padding: 6px 0; text-align: right; font-size: 11px;">Rp${(item.price || 0).toLocaleString('id-ID')}</td>
+                    <td style="padding: 6px 0; text-align: right; font-size: 11px;">Rp${subtotal.toLocaleString('id-ID')}</td>
                 </tr>
             `;
         });
 
-        const paymentMethod = order.paymentMethod === 'qris' ? '📱 QRIS' : '💵 Tunai (Cash)';
+        const paymentMethod = order.paymentMethod === 'qris' ? '<i class="bi bi-qr-code me-1"></i> QRIS' : '<i class="bi bi-cash-coin me-1"></i> Tunai';
         
         return `
-            <div class="receipt-content" style="max-width: 400px; width:100%; margin: 0 auto; font-family: 'Courier New', monospace; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h3 style="margin: 0; color: #1a3a52;">STRUK PEMESANAN</h3>
-                    <p style="margin: 5px 0; color: #666; font-size: 12px;">BAZAR HmI</p>
+            <div class="receipt-content" style="max-width: 400px; width: 100%; margin: 0 auto; font-family: 'Courier New', monospace; background: white; padding: 0;">
+                
+                <!-- HEADER -->
+                <div style="text-align: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #333;">
+                    <h3 style="margin: 0 0 4px 0; color: #1a3a52; font-size: 14px; font-weight: 700;">STRUK PEMESANAN</h3>
+                    <p style="margin: 0; color: #666; font-size: 11px;">Himpunan Mahasiswa Islam</p>
                 </div>
                 
-                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
-                
-                <div style="margin-bottom: 15px; font-size: 12px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>No. Struk:</strong></span>
-                        <span>${receiptNumber}</span>
+                <!-- INFO STRUK -->
+                <div style="margin-bottom: 12px; font-size: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>No. Struk</span>
+                        <span style="font-weight: 600;">${receiptNumber}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>Tanggal:</strong></span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Tanggal</span>
                         <span>${dateStr}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span><strong>Pembeli:</strong></span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Pembeli</span>
                         <span>${order.buyerName || '-'}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span><strong>Meja:</strong></span>
+                        <span>Meja</span>
                         <span>${order.tableNumber || '-'}</span>
                     </div>
                 </div>
                 
-                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
+                <div style="border-top: 1px dashed #999; border-bottom: 1px dashed #999; padding: 10px 0; margin: 10px 0;">
                 
-                <table style="width: 100%; font-size: 12px; margin-bottom: 15px;">
-                    <thead>
-                        <tr style="border-bottom: 1px dashed #999;">
-                            <th style="text-align: left; padding-bottom: 5px;">Item</th>
-                            <th style="text-align: right; padding-bottom: 5px;">Qty</th>
-                            <th style="text-align: right; padding-bottom: 5px;">Harga</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHTML}
-                    </tbody>
-                </table>
+                    <!-- ITEMS TABLE -->
+                    <table style="width: 100%; font-size: 10px; margin: 0; padding: 0; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #333;">
+                                <th style="text-align: left; padding: 4px 0; font-weight: 700; font-size: 11px;">Item</th>
+                                <th style="text-align: center; padding: 4px 0; font-weight: 700; font-size: 11px; width: 20px;">Qty</th>
+                                <th style="text-align: right; padding: 4px 0; font-weight: 700; font-size: 11px; width: 60px;">Harga</th>
+                                <th style="text-align: right; padding: 4px 0; font-weight: 700; font-size: 11px; width: 70px;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHTML}
+                        </tbody>
+                    </table>
+                </div>
                 
-                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
-                
-                <div style="margin-bottom: 15px; font-size: 12px;">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
-                        <span>Total:</span>
-                        <span>Rp${(order.total || 0).toLocaleString('id-ID')}</span>
+                <!-- TOTAL & PEMBAYARAN -->
+                <div style="margin: 12px 0; font-size: 11px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #999;">
+                        <span style="font-weight: 700;">TOTAL PESANAN</span>
+                        <span style="font-weight: 700; color: #1a3a52; font-size: 13px;">Rp${(order.total || 0).toLocaleString('id-ID')}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; color: #666;">
-                        <span><strong>Pembayaran:</strong></span>
-                        <span>${paymentMethod}</span>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Pembayaran</span>
+                        <span style="font-weight: 600;">${paymentMethod}</span>
                     </div>
                 </div>
                 
-                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
-                
-                <div style="text-align: center; font-size: 11px; color: #666;">
-                    <p style="margin: 0; margin-bottom: 5px;">Terimakasih telah berbelanja</p>
-                    <p style="margin: 0;">BAZAR HmI 2024</p>
+                <!-- FOOTER -->
+                <div style="text-align: center; font-size: 10px; color: #666; margin-top: 12px; padding-top: 10px; border-top: 2px solid #333;">
+                    <p style="margin: 0 0 3px 0;">Terimakasih telah berbelanja</p>
+                    <p style="margin: 0;">Himpunan Mahasiswa Islam 2024</p>
                 </div>
             </div>
         `;
@@ -572,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function buildEMVQRPayload(o, receipt) {
                 // Default NMID; prefer server-provided setting if available
                 const nm = (o.nmid || (window.serverSettings && window.serverSettings.QRIS_MERCHANT_NMID) || 'ID1025389810363').toString();
-                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'BAZAR HmI';
+                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'Himpunan Mahasiswa Islam';
                 const merchantCity = (window.serverSettings && window.serverSettings.MERCHANT_CITY) || 'MAKASSAR';
 
             // For static QRIS we set Point of Initiation = '11' and omit amount
@@ -611,29 +615,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (order.paymentMethod === 'qris') {
                 // Use static QRIS image for all orders
                 const staticQrisPath = 'assets/img/qris-static.png';
-                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'BAZAR HmI';
+                const merchantName = (window.serverSettings && window.serverSettings.MERCHANT_NAME) || 'Himpunan Mahasiswa Islam';
                 const merchantCity = (window.serverSettings && window.serverSettings.MERCHANT_CITY) || 'Makassar';
                 const nmid = (window.serverSettings && window.serverSettings.QRIS_MERCHANT_NMID) || 'ID1025389810363';
                 
                 // Create image with error fallback to styled merchant info
                 extraQRSection = `
-                    <div style="text-align: center; margin-top: 15px;">
-                        <p style="margin-bottom:8px; font-weight:600;">Scan untuk membayar via QRIS</p>
-                        <p style="font-size: 12px; color: #666; margin: 5px 0;">Gunakan GoPay, OVO, Dana, atau e-wallet lainnya</p>
-                        <div style="position: relative; display: inline-block; width: 280px;">
-                            <img id="qrisImageReceipt" src="${staticQrisPath}" alt="QRIS Code" style="max-width:260px; margin: 10px auto; display:block; border-radius:8px; border: 1px solid #ddd; width: 100%;" onerror="this.style.display='none'; document.getElementById('qrisPlaceholder_${receiptNumber}').style.display='block';"/>
-                            <div id="qrisPlaceholder_${receiptNumber}" style="max-width:260px; margin: 10px auto; padding: 20px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 8px; border: 2px solid #0d6efd; display: none; font-size: 13px; color: white; text-align: center;">
-                                <p style="margin: 8px 0; font-weight: 700; font-size: 14px;">📱 QRIS PEMBAYARAN</p>
-                                <div style="background: white; padding: 10px; border-radius: 4px; margin: 10px 0;">
-                                    <p style="margin: 4px 0; color: #1a3a52; font-weight: 600;">${merchantName}</p>
-                                    <p style="margin: 4px 0; color: #1a3a52; font-size: 11px;">NMID: ${nmid}</p>
+                    <div style="margin: 15px 0; padding: 12px 0; border-top: 1px dashed #999;">
+                        <p style="text-align: center; margin: 0 0 8px 0; font-weight: 600; font-size: 11px; color: #1a3a52;"><i class="bi bi-qr-code me-1"></i> SCAN QRIS</p>
+                        <p style="text-align: center; margin: 0 0 10px 0; font-size: 9px; color: #666;">Gunakan GoPay, OVO, Dana</p>
+                        
+                        <div style="position: relative; display: flex; justify-content: center; width: 100%;">
+                            <img id="qrisImageReceipt" src="${staticQrisPath}" alt="QRIS Code" style="max-width: 180px; display: block; border-radius: 6px; border: 1px solid #ddd;" onerror="this.style.display='none'; document.getElementById('qrisPlaceholder_${receiptNumber}').style.display='block';"/>
+                            <div id="qrisPlaceholder_${receiptNumber}" style="max-width: 180px; padding: 12px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 6px; border: 1px solid #00a856; display: none; font-size: 10px; color: white; text-align: center;">
+                                <p style="margin: 4px 0; font-weight: 700; font-size: 11px;"><i class="bi bi-qr-code me-1" style="color: #00a856;"></i> QRIS</p>
+                                <div style="background: white; padding: 6px; border-radius: 4px; margin: 6px 0; font-size: 9px;">
+                                    <p style="margin: 2px 0; color: #1a3a52; font-weight: 600;">${merchantName}</p>
+                                    <p style="margin: 2px 0; color: #1a3a52;">NMID: ${nmid}</p>
                                 </div>
-                                <p style="margin: 8px 0; font-size: 11px; color: #ccc;">Scan dengan GoPay/OVO/Dana</p>
                             </div>
                         </div>
-                        <div style="margin-top:10px; font-size: 11px; color: #666;">
-                            <p style="margin: 3px 0;"><strong>Merchant:</strong> ${merchantName}</p>
-                            <p style="margin: 3px 0;"><strong>NMID:</strong> ${nmid}</p>
+                        
+                        <div style="text-align: center; font-size: 9px; color: #666; margin-top: 8px;">
+                            <p style="margin: 2px 0;"><strong>Merchant:</strong> ${merchantName}</p>
+                            <p style="margin: 2px 0;"><strong>NMID:</strong> ${nmid}</p>
                         </div>
                     </div>
                 `;
@@ -643,29 +648,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         modal.innerHTML = `
-            <div style="background: white; border-radius: 12px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
-                    <h5 style="margin: 0; color: #1a3a52;">🧾 Struk Pesanan</h5>
-                    <button type="button" onclick="document.getElementById('receiptModal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">✕</button>
+            <div style="background: white; border-radius: 8px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 2px solid #f0f0f0;">
+                    <h5 style="margin: 0; font-size: 14px; font-weight: 700; color: #1a3a52;"><i class="bi bi-receipt me-2" style="color: #00a856;"></i>Struk Pesanan</h5>
+                    <button type="button" onclick="document.getElementById('receiptModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #999; transition: color 0.2s;"><i class="bi bi-x-lg"></i></button>
                 </div>
-                ${receiptHTML}
-                ${extraQRSection}
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button onclick="window.print()" class="btn btn-primary" style="flex: 1; background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ Cetak</button>
-                    <button onclick="document.getElementById('receiptModal').style.display='none'" class="btn btn-secondary" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Tutup</button>
+                <div style="padding: 16px;">
+                    ${receiptHTML}
+                    ${extraQRSection}
+                </div>
+                <div style="display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid #f0f0f0; background: #f9f9f9;">
+                    <button onclick="window.print()" style="flex: 1; background: linear-gradient(135deg, #00a856 0%, #007a42 100%); color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; transition: background 0.2s;"><i class="bi bi-printer me-1"></i>Cetak</button>
+                    <button onclick="document.getElementById('receiptModal').style.display='none'" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; transition: background 0.2s;">Tutup</button>
                 </div>
                 <style>
                     @page { size: 80mm auto; margin: 3mm; }
                     @media print {
-                        /* hide everything except the modal/receipt */
                         body * { visibility: hidden !important; }
                         #receiptModal, #receiptModal * { visibility: visible !important; }
-                        #receiptModal { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; display: block !important; background: white !important; }
-                        #receiptModal > div { margin: 0 auto !important; box-shadow: none !important; width: 80mm !important; max-width: 100% !important; border-radius: 0 !important; padding: 0 !important; }
+                        #receiptModal { position: fixed !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; display: block !important; background: white !important; z-index: 10000 !important; }
+                        #receiptModal > div { margin: 0 auto !important; box-shadow: none !important; width: 80mm !important; max-width: 100% !important; border-radius: 0 !important; max-height: 100% !important; }
+                        #receiptModal > div > div:first-child { display: none !important; }
+                        #receiptModal > div > div:last-child { display: none !important; }
                         .receipt-content { width: 100% !important; padding: 6mm !important; background: transparent !important; border: none !important; }
-                        .receipt-content hr { border: none !important; border-top: 1px dashed #999 !important; }
                         img { max-width: 100% !important; height: auto !important; }
-                        .btn { display: none !important; }
+                        button { display: none !important; }
                     }
                 </style>
             </div>
@@ -682,10 +689,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     payloadArea.select();
                     document.execCommand('copy');
                     payloadArea.style.display = 'none';
-                    showToast('✅ Payload QRIS disalin ke clipboard', 'success');
+                    showToast('<i class="bi bi-check-circle-fill" style="color: #28a745; margin-right: 6px;"></i>Payload QRIS disalin ke clipboard', 'success');
                 } catch (e) {
                     console.error('Copy payload failed', e);
-                    showToast('❌ Gagal menyalin payload', 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill" style="color: #dc3545; margin-right: 6px;"></i>Gagal menyalin payload', 'error');
                 }
             });
         }
@@ -1090,22 +1097,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 const paymentMethod = paymentMethodSelect ? (paymentMethodSelect.value || '') : '';
 
                 if (!buyerName) {
-                    showToast('❌ Masukkan nama pembeli.', 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Masukkan nama pembeli.', 'error');
                     if (buyerInput) buyerInput.focus();
                     return;
                 }
                 if (!tableNumber) {
-                    showToast('❌ Pilih nomor meja atau Takeaway.', 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Pilih nomor meja atau Takeaway.', 'error');
                     if (tableSelect) tableSelect.focus();
                     return;
                 }
                 if (!paymentMethod) {
-                    showToast('❌ Pilih metode pembayaran.', 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Pilih metode pembayaran.', 'error');
                     if (paymentMethodSelect) paymentMethodSelect.focus();
                     return;
                 }
                 if (!cart.length) {
-                    showToast('❌ Keranjang kosong. Tambahkan item ke keranjang.', 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Keranjang kosong. Tambahkan item ke keranjang.', 'error');
                     return;
                 }
 
@@ -1122,9 +1129,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const prevCompleted = orders[idx].completed || false;
                             orders[idx] = { id: editingId, buyerName, tableNumber, items: clonedItems, total, paymentMethod, receiptNumber, completed: prevCompleted };
                             saveOrders(orders);
-                            showToast('✅ Perubahan pesanan berhasil disimpan!', 'success');
+                            showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Perubahan pesanan berhasil disimpan!', 'success');
                         } else {
-                            showToast('❌ Pesanan yang diedit tidak ditemukan.', 'error');
+                            showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Pesanan yang diedit tidak ditemukan.', 'error');
                         }
                         editingId = null;
                         if (submitBtn) submitBtn.textContent = initialSubmitText;
@@ -1138,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Also save to API
                         await saveOrderViaAPI(orderData);
                         
-                        showToast('✅ Pesanan berhasil disimpan!', 'success');
+                        showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Pesanan berhasil disimpan!', 'success');
                         
                         // Show receipt after saving
                         setTimeout(() => {
@@ -1157,7 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (paymentMethodSelect) paymentMethodSelect.value = '';
                 } catch (err) {
                     console.error('Error:', err);
-                    showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
+                    showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Terjadi kesalahan: ' + err.message, 'error');
                 }
             });
         }
@@ -1282,8 +1289,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const receiptBtn = document.createElement('button');
                         receiptBtn.className = 'receipt-btn';
                         receiptBtn.type = 'button';
-                        receiptBtn.textContent = '🧾 Struk';
-                        receiptBtn.style.cssText = 'background: #17a2b8; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-left: 5px;';
+                        receiptBtn.innerHTML = '<i class="bi bi-receipt me-1"></i>Struk';
+                        receiptBtn.style.cssText = 'background: linear-gradient(135deg, #00a856 0%, #007a42 100%); color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-left: 5px;';
                         receiptBtn.addEventListener('click', () => {
                             showReceiptModal(order);
                         });
@@ -1351,7 +1358,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Orders:', orders);
 
                     if (!orders || orders.length === 0) {
-                        showToast('❌ Tidak ada pesanan untuk diekspor. Buat pesanan dulu di halaman "Pesan Sekarang".', 'error');
+                        showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Tidak ada pesanan untuk diekspor. Buat pesanan dulu di halaman "Pesan Sekarang".', 'error');
                         return;
                     }
 
@@ -1422,11 +1429,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Download file
                         const fileName = `Pesanan_BAZAR_HmI_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`;
                         XLSX.writeFile(wb, fileName);
-                        showToast('✅ Data berhasil diekspor ke Excel!\nFile: ' + fileName, 'success');
+                        showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Data berhasil diekspor ke Excel!\nFile: ' + fileName, 'success');
                         
                     } catch (err) {
                         console.error('Export error:', err);
-                        showToast('❌ Error saat export: ' + err.message, 'error');
+                        showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Error saat export: ' + err.message, 'error');
                     }
                 });
             });
@@ -1489,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
 
                             if (importedOrders.length === 0) {
-                                showToast('❌ File Excel tidak memiliki data yang valid.', 'error');
+                                showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>File Excel tidak memiliki data yang valid.', 'error');
                                 return;
                             }
 
@@ -1503,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         } catch (err) {
                             console.error('Import error:', err);
-                            showToast('❌ Gagal mengimpor file. Pastikan format Excel benar.', 'error');
+                            showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Gagal mengimpor file. Pastikan format Excel benar.', 'error');
                         }
                     };
                     reader.readAsArrayBuffer(file);
@@ -1706,23 +1713,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Validation
                     if (newPassword.length < 6) {
-                        showToast('❌ Password minimal 6 karakter', 'error');
+                        showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Password minimal 6 karakter', 'error');
                         return;
                     }
 
                     if (newPassword !== confirmPassword) {
-                        showToast('❌ Password tidak cocok', 'error');
+                        showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Password tidak cocok', 'error');
                         return;
                     }
 
                     // Change password
                     try {
                         await setAdminPassword(newPassword);
-                        showToast('✅ Password berhasil diubah! Silakan login kembali.', 'success');
+                        showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Password berhasil diubah! Silakan login kembali.', 'success');
                         logoutAdmin();
                         window.location.href = 'admin-login.html';
                     } catch (error) {
-                        showToast('❌ Terjadi kesalahan: ' + error.message, 'error');
+                        showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>Terjadi kesalahan: ' + error.message, 'error');
                     }
                 });
             }
@@ -1731,7 +1738,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 logoutBtn.addEventListener('click', function() {
                     showConfirmUndo('⚠️ Apakah Anda yakin ingin logout?', () => {
                         logoutAdmin();
-                        showToast('✅ Logout berhasil', 'success');
+                        showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Logout berhasil', 'success');
                         window.location.href = 'admin-login.html';
                     });
                 });
@@ -1766,14 +1773,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const nm = qrisNmidInput ? qrisNmidInput.value.trim() : '';
                     const nmName = qrisMerchantNameInput ? qrisMerchantNameInput.value.trim() : '';
                     const nmCity = qrisMerchantCityInput ? qrisMerchantCityInput.value.trim() : '';
-                    if (!nm) { showToast('❌ NMID tidak boleh kosong', 'error'); return; }
+                    if (!nm) { showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>NMID tidak boleh kosong', 'error'); return; }
                     try {
                         const ok = await apiCall('settings', {
                             method: 'POST',
                             body: JSON.stringify({ QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity })
                         });
                         if (ok && ok.ok) {
-                            showToast('✅ Pengaturan QRIS berhasil disimpan', 'success');
+                            showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Pengaturan QRIS berhasil disimpan', 'success');
                             // refresh local settings
                             window.serverSettings = { ...(window.serverSettings || {}), QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity };
                         } else {

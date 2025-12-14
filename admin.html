@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Edit Menu - BAZAR HmI</title>
+    <title>Admin - Edit Menu - Himpunan Mahasiswa Islam</title>
     <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles-additions.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -257,7 +258,7 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.html" style="font-size: 1.5rem;">
                 <img src="/logo.png" alt="HmI Logo" height="35" class="me-2">
-                <span style="color: #0d6efd;">BAZAR</span> <span style="color: #000;">HmI</span>
+                <span style="color: #00a856;">Himpunan Mahasiswa</span> <span style="color: #00a856;">Islam</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -274,15 +275,15 @@
                         <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="qris-generator.html" style="color: #495057; font-weight: 500;">🎯 QRIS Generator</a>
+                        <a class="nav-link" href="qris-generator.html" style="color: #495057; font-weight: 500;"><i class="bi bi-qr-code me-1"></i> QRIS Generator</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: #17a2b8; border: none; border-radius: 6px; color: white;">📝 Buat Pesanan</a>
+                        <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px; color: white;"><i class="bi bi-pencil-square me-2"></i>Buat Pesanan</a>
                     </li>
                     <li class="nav-item ms-3">
                         <span id="syncStatus" class="badge bg-success" style="padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
                             <span class="spinner-border spinner-border-sm" id="syncSpinner" style="display: none; width: 12px; height: 12px;"></span>
-                            <span id="syncStatusText">🟢 Siap</span>
+                            <span id="syncStatusText"><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> Siap</span>
                         </span>
                     </li>
                 </ul>
@@ -292,7 +293,7 @@
 
     <div class="admin-container">
         <div class="header-section">
-            <h1>⚙️ Edit Menu Dashboard</h1>
+            <h1><i class="bi bi-gear me-2" style="color: #00a856;"></i>Edit Menu Dashboard</h1>
             <p class="text-muted-custom">Kelola kategori, item, harga, dan status stock menu dengan mudah dan real-time</p>
         </div>
 
@@ -340,7 +341,7 @@
 
             <!-- BUAT MENU BARU (BULK) -->
             <div class="section-card">
-                <div class="section-title">📋 Import Menu Bulk (Opsional)</div>
+                <div class="section-title"><i class="bi bi-list-check me-2" style="color: #00a856;"></i>Import Menu Bulk (Opsional)</div>
                 <p class="text-muted-custom">Gunakan fitur ini jika ingin menambah banyak item sekaligus</p>
                 <div class="form-group">
                     <label class="form-label fw-600">Nama Kategori</label>
@@ -352,28 +353,28 @@
                     <small class="text-muted-custom d-block mt-2">Pisahkan dengan tanda | (pipe). Status opsional: false (tersedia) atau true (habis)</small>
                 </div>
                 <div>
-                    <button id="createMenuBtn" class="btn-primary-custom">📥 Import Bulk</button>
+                    <button id="createMenuBtn" class="btn-primary-custom"><i class="bi bi-upload me-1"></i>Import Bulk</button>
                 </div>
             </div>
 
             <!-- DAFTAR KATEGORI & ITEM -->
             <div class="section-card">
-                <div class="section-title">📦 Daftar Kategori & Item</div>
+                <div class="section-title"><i class="bi bi-tag-fill me-2" style="color: #00a856;"></i>Daftar Kategori & Item</div>
                 <div id="categories"></div>
             </div>
 
             <!-- AKSI GLOBAL -->
             <div class="section-card">
-                <div class="section-title">💾 Aksi Penting</div>
+                <div class="section-title"><i class="bi bi-lightning-fill me-2" style="color: #00a856;"></i>Aksi Penting</div>
                 <div class="action-buttons">
-                    <button id="saveBtn" class="btn-primary-custom">💾 Simpan Perubahan</button>
-                    <button id="resetBtn" class="btn-secondary-custom">🔄 Reset ke Default</button>
+                    <button id="saveBtn" class="btn-primary-custom"><i class="bi bi-save me-1"></i>Simpan Perubahan</button>
+                    <button id="resetBtn" class="btn-secondary-custom"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset ke Default</button>
                 </div>
             </div>
             
             <!-- PENGATURAN QRIS -->
             <div class="section-card">
-                <div class="section-title">🎯 Pengaturan QRIS Statis</div>
+                <div class="section-title"><i class="bi bi-qr-code me-2" style="color: #00a856;"></i>Pengaturan QRIS Statis</div>
                 <p class="text-muted-custom">Kelola data merchant QRIS untuk static QR code (tanpa amount dinamis).</p>
                 <form id="qrisSettingsForm">
                     <div class="row">
@@ -400,8 +401,8 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button id="saveQrisBtn" type="button" class="btn-primary-custom">💾 Simpan Pengaturan QRIS</button>
-                        <a href="qris-generator.html" class="btn btn-outline-primary" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">🎯 Buka Generator QRIS</a>
+                        <button id="saveQrisBtn" type="button" class="btn-primary-custom"><i class="bi bi-save me-1"></i>Simpan Pengaturan QRIS</button>
+                        <a href="qris-generator.html" class="btn btn-outline-primary" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;"><i class="bi bi-qr-code me-1"></i>Buka Generator QRIS</a>
                     </div>
                     <div id="qrisMessage" class="text-muted-custom" style="margin-top: 10px;"></div>
                 </form>
@@ -409,12 +410,12 @@
             
             <!-- UBAH PASSWORD ADMIN -->
             <div class="section-card">
-                <div class="section-title">🔒 Ubah Password Admin</div>
+                <div class="section-title"><i class="bi bi-lock-fill me-2" style="color: #00a856;"></i>Ubah Password Admin</div>
                 <p class="text-muted-custom">Ubah password admin untuk mengamankan akses panel.</p>
                 <div class="form-group" style="display:flex; gap:8px; align-items:center;">
                     <input id="newAdminPassword" type="password" class="form-control" placeholder="Password baru" style="max-width:400px;">
                     <button id="changePasswordBtn" class="btn-primary-custom btn-sm-custom">Ubah</button>
-                    <button id="showNewPassword" class="btn btn-outline-secondary btn-sm">👁️</button>
+                    <button id="showNewPassword" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></button>
                 </div>
                 <div id="passwordMessage" class="text-muted-custom" style="margin-top:8px;"></div>
             </div>
@@ -565,8 +566,8 @@
             if (toggle) {
                 toggle.addEventListener('click', () => {
                     if (!input) return;
-                    if (input.type === 'password') { input.type = 'text'; toggle.textContent = '🙈'; }
-                    else { input.type = 'password'; toggle.textContent = '👁️'; }
+                    if (input.type === 'password') { input.type = 'text'; toggle.innerHTML = '<i class=\"bi bi-eye-slash\"></i>'; }
+                    else { input.type = 'password'; toggle.innerHTML = '<i class=\"bi bi-eye\"></i>'; }
                 });
             }
 

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generator QR QRIS Statis - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/main.css">
     <style>
         body {
@@ -69,8 +70,8 @@
         <div class="row mb-4">
             <div class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h1 style="color: white; font-weight: 700;">🎯 Generator QR QRIS Statis</h1>
-                    <a href="admin.html" class="btn btn-outline-light">← Kembali ke Admin</a>
+                    <h1 style="color: white; font-weight: 700;"><i class="bi bi-qr-code me-2"></i>Generator QR QRIS Statis</h1>
+                    <a href="admin.html" class="btn btn-outline-light"><i class="bi bi-arrow-left me-1"></i>Kembali ke Admin</a>
                 </div>
             </div>
         </div>
@@ -78,7 +79,7 @@
         <!-- Main Card -->
         <div class="card shadow-lg">
             <div class="card-header">
-                ⚙️ Pengaturan QRIS Statis
+                <i class="bi bi-gear me-2"></i>Pengaturan QRIS Statis
             </div>
             <div class="card-body">
                 <form id="qrisStaticForm">
@@ -102,12 +103,12 @@
                     </div>
 
                     <div class="info-box">
-                        <strong>ℹ️ QR QRIS Statis</strong><br>
+                        <strong><i class="bi bi-info-circle me-2" style="color: #00a856;"></i>QR QRIS Statis</strong><br>
                         QR ini dapat discan dari aplikasi GoPay, OVO, Dana, atau app e-wallet lainnya. Payer akan memasukkan jumlah pembayaran secara manual di aplikasi mereka. Cocok untuk ditempel di kios, poster, atau sticker.
                     </div>
 
-                    <button type="button" class="btn btn-primary btn-lg w-100" id="generateBtn">
-                        🔄 Generate QR QRIS Statis
+                    <button type="button" class="btn btn-primary btn-lg w-100" id="generateBtn" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px;">
+                        <i class="bi bi-arrow-repeat me-2"></i>Generate QR QRIS Statis
                     </button>
                 </form>
             </div>
@@ -116,13 +117,13 @@
         <!-- QR Preview -->
         <div class="card shadow-lg mt-4">
             <div class="card-header">
-                📱 Pratinjau QR Code
+                <i class="bi bi-qr-code me-2"></i>Pratinjau QR Code
             </div>
             <div class="card-body">
                 <div class="qr-preview" id="qrPreviewContainer" style="display: none; position: relative;">
                     <img id="qrImage" alt="QR QRIS Statis" style="max-width: 100%; max-height: 400px;" onerror="this.style.display='none'; document.getElementById('qrPlaceholder').style.display='block';"/>
-                    <div id="qrPlaceholder" style="max-width: 350px; margin: 20px auto; padding: 30px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 12px; border: 2px solid #0d6efd; display: none; font-size: 14px; color: white; text-align: center;">
-                        <p style="margin: 10px 0; font-weight: 700; font-size: 16px;">📱 QRIS PEMBAYARAN NASIONAL</p>
+                    <div id="qrPlaceholder" style="max-width: 350px; margin: 20px auto; padding: 30px; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); border-radius: 12px; border: 2px solid #00a856; display: none; font-size: 14px; color: white; text-align: center;">
+                        <p style="margin: 10px 0; font-weight: 700; font-size: 16px;"><i class="bi bi-qr-code me-2" style="color: #00a856;"></i>QRIS PEMBAYARAN NASIONAL</p>
                         <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
                             <p style="margin: 5px 0; color: #1a3a52; font-weight: 700;" id="placeholderMerchant">SERVIS KOMPUTER</p>
                             <p style="margin: 5px 0; color: #1a3a52; font-size: 12px;">NMID: <span id="placeholderNmid">ID1025389810363</span></p>
@@ -138,23 +139,23 @@
 
                 <!-- Payload Display -->
                 <div class="mt-4" id="payloadSection" style="display: none;">
-                    <h6 class="fw-bold mb-2">📋 EMVCo Payload:</h6>
+                    <h6 class="fw-bold mb-2"><i class="bi bi-file-text me-2" style="color: #00a856;"></i>EMVCo Payload:</h6>
                     <div class="payload-text" id="payloadText"></div>
                     <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="copyPayloadBtn">
-                        📋 Salin Payload
+                        <i class="bi bi-clipboard me-1"></i>Salin Payload
                     </button>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="btn-group-actions" id="actionButtons" style="display: none;">
                     <button type="button" class="btn btn-success btn-action" id="downloadQrBtn">
-                        ⬇️ Unduh QR (PNG)
+                        <i class="bi bi-download me-1"></i>Unduh QR (PNG)
                     </button>
                     <button type="button" class="btn btn-info btn-action" id="printQrBtn">
-                        🖨️ Cetak QR
+                        <i class="bi bi-printer me-1"></i>Cetak QR
                     </button>
                     <button type="button" class="btn btn-warning btn-action" id="downloadPdfBtn">
-                        📄 Unduh PDF
+                        <i class="bi bi-file-pdf me-1"></i>Unduh PDF
                     </button>
                 </div>
             </div>
@@ -163,7 +164,7 @@
         <!-- Instructions -->
         <div class="card shadow-lg mt-4">
             <div class="card-header">
-                📖 Panduan Penggunaan
+                <i class="bi bi-book me-2"></i>Panduan Penggunaan
             </div>
             <div class="card-body">
                 <ol>
@@ -174,11 +175,11 @@
                     <li><strong>Payer memasukkan nominal</strong> pembayaran secara manual di aplikasi mereka.</li>
                 </ol>
                 <div class="alert alert-info mt-3">
-                    <strong>💡 Keuntungan QR QRIS Statis:</strong><br>
-                    ✅ Satu QR code untuk semua transaksi<br>
-                    ✅ Mudah dicetak dan dipajang<br>
-                    ✅ Tidak perlu per-pesanan QR<br>
-                    ✅ Kompatibel semua e-wallet
+                    <strong><i class="bi bi-lightbulb me-2"></i>Keuntungan QR QRIS Statis:</strong><br>
+                    <i class="bi bi-check-circle-fill"></i> Satu QR code untuk semua transaksi<br>
+                    <i class="bi bi-check-circle-fill"></i> Mudah dicetak dan dipajang<br>
+                    <i class="bi bi-check-circle-fill"></i> Tidak perlu per-pesanan QR<br>
+                    <i class="bi bi-check-circle-fill"></i> Kompatibel semua e-wallet
                 </div>
             </div>
         </div>
@@ -227,7 +228,7 @@
                 const result = await apiCall('settings');
                 if (result.ok && result.data) {
                     staticNmid.value = result.data.QRIS_MERCHANT_NMID || 'ID1025389810363';
-                    staticMerchantName.value = result.data.MERCHANT_NAME || 'BAZAR HmI';
+                    staticMerchantName.value = result.data.MERCHANT_NAME || 'Himpunan Mahasiswa Islam';
                     staticCity.value = result.data.MERCHANT_CITY || 'Makassar';
                 } else {
                     // Fallback to localStorage or hardcoded defaults
@@ -235,7 +236,7 @@
                     if (stored) {
                         const s = JSON.parse(stored);
                         staticNmid.value = s.nmid || 'ID1025389810363';
-                        staticMerchantName.value = s.merchantName || 'BAZAR HmI';
+                        staticMerchantName.value = s.merchantName || 'Himpunan Mahasiswa Islam';
                         staticCity.value = s.city || 'Makassar';
                     } else {
                         staticNmid.value = 'ID1025389810363';
@@ -335,7 +336,7 @@
         });
 
         downloadPdfBtn.addEventListener('click', () => {
-            showToast('💡 Menggunakan browser print ke PDF...', 'info');
+            showToast('<i class=\"bi bi-lightbulb me-2\" style=\"color: #ffc107;\"></i>Menggunakan browser print ke PDF...', 'info');
             printQrBtn.click();
         });
     </script>
