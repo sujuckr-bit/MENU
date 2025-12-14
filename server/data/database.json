@@ -322,6 +322,73 @@
       "completed": false,
       "createdAt": 1765639609437,
       "id": 21
+    },
+    {
+      "buyerName": "tes",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 4,
+          "subtotal": 112000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Kopi Pandan (Hot/Ice)",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 140000,
+      "completed": false,
+      "createdAt": 1765713721985,
+      "id": 22
+    },
+    {
+      "buyerName": "sam",
+      "tableNumber": "13",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Mango Soda",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "completed": false,
+      "createdAt": 1765713732978,
+      "id": 23
+    },
+    {
+      "buyerName": "sya",
+      "tableNumber": "12",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Pandan (Hot/Ice)",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        },
+        {
+          "category": "Minum",
+          "itemName": "Kopi Gula Aren (Hot/Ice)",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 56000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251214-3730",
+      "completed": false,
+      "createdAt": 1765714361437,
+      "id": 24
     }
   ]
 }

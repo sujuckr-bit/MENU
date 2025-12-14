@@ -310,6 +310,156 @@ document.addEventListener('DOMContentLoaded', function() {
         return null;
     }
 
+    // Generate unique receipt number
+    function generateReceiptNumber() {
+        const date = new Date();
+        const dateStr = date.getFullYear().toString().slice(-2) + 
+                       String(date.getMonth() + 1).padStart(2, '0') + 
+                       String(date.getDate()).padStart(2, '0');
+        const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        return `RCP-${dateStr}-${random}`;
+    }
+
+    // Generate receipt HTML
+    function generateReceiptHTML(order, receiptNumber) {
+        const date = new Date(order.createdAt || Date.now());
+        const dateStr = date.toLocaleDateString('id-ID', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        let itemsHTML = '';
+        const items = order.items || [];
+        items.forEach(item => {
+            itemsHTML += `
+                <tr>
+                    <td>${item.itemName || item.name}</td>
+                    <td style="text-align: right;">${item.quantity || 1}x</td>
+                    <td style="text-align: right;">Rp${(item.price || 0).toLocaleString('id-ID')}</td>
+                </tr>
+            `;
+        });
+
+        const paymentMethod = order.paymentMethod === 'qris' ? '📱 QRIS' : '💵 Tunai (Cash)';
+        
+        return `
+            <div style="max-width: 400px; margin: 0 auto; font-family: 'Courier New', monospace; background: white; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: #1a3a52;">STRUK PEMESANAN</h3>
+                    <p style="margin: 5px 0; color: #666; font-size: 12px;">BAZAR HmI</p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
+                
+                <div style="margin-bottom: 15px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span><strong>No. Struk:</strong></span>
+                        <span>${receiptNumber}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span><strong>Tanggal:</strong></span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span><strong>Pembeli:</strong></span>
+                        <span>${order.buyerName || '-'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><strong>Meja:</strong></span>
+                        <span>${order.tableNumber || '-'}</span>
+                    </div>
+                </div>
+                
+                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
+                
+                <table style="width: 100%; font-size: 12px; margin-bottom: 15px;">
+                    <thead>
+                        <tr style="border-bottom: 1px dashed #999;">
+                            <th style="text-align: left; padding-bottom: 5px;">Item</th>
+                            <th style="text-align: right; padding-bottom: 5px;">Qty</th>
+                            <th style="text-align: right; padding-bottom: 5px;">Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML}
+                    </tbody>
+                </table>
+                
+                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
+                
+                <div style="margin-bottom: 15px; font-size: 12px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
+                        <span>Total:</span>
+                        <span>Rp${(order.total || 0).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; color: #666;">
+                        <span><strong>Pembayaran:</strong></span>
+                        <span>${paymentMethod}</span>
+                    </div>
+                </div>
+                
+                <hr style="border: none; border-top: 1px dashed #999; margin: 15px 0;">
+                
+                <div style="text-align: center; font-size: 11px; color: #666;">
+                    <p style="margin: 0; margin-bottom: 5px;">Terimakasih telah berbelanja</p>
+                    <p style="margin: 0;">BAZAR HmI 2024</p>
+                </div>
+            </div>
+        `;
+    }
+
+    // Show receipt modal
+    function showReceiptModal(order) {
+        const receiptNumber = order.receiptNumber || generateReceiptNumber();
+        const receiptHTML = generateReceiptHTML(order, receiptNumber);
+        
+        // Create modal if not exists
+        let modal = document.getElementById('receiptModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'receiptModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: none;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 12px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+                    <h5 style="margin: 0; color: #1a3a52;">🧾 Struk Pesanan</h5>
+                    <button type="button" onclick="document.getElementById('receiptModal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">✕</button>
+                </div>
+                ${receiptHTML}
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="window.print()" class="btn btn-primary" style="flex: 1; background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">🖨️ Cetak</button>
+                    <button onclick="document.getElementById('receiptModal').style.display='none'" class="btn btn-secondary" style="flex: 1; background: #6c757d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;">Tutup</button>
+                </div>
+                <style>
+                    @media print {
+                        body * { display: none !important; }
+                        #receiptModal { display: flex !important; position: static !important; background: white !important; }
+                        #receiptModal > div { max-width: 100% !important; padding: 0 !important; }
+                        .btn { display: none !important; }
+                    }
+                </style>
+            </div>
+        `;
+        modal.style.display = 'flex';
+    }
+
     // Halaman Pesan (pesan.html)
     if (isOrderPage) {
         console.log('[OK] Initializing Order Page...');
@@ -697,11 +847,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('=== Available menus:', Object.keys(menus).map(k => k + ' (' + menus[k].length + ' items)').join(', '));
 
         // Form submission
+        const paymentMethodSelect = document.getElementById('paymentMethod');
         if (orderForm) {
             orderForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
             const buyerName = buyerInput ? buyerInput.value.trim() : '';
                 const tableNumber = tableSelect ? (tableSelect.value || '') : '';
+                const paymentMethod = paymentMethodSelect ? (paymentMethodSelect.value || '') : '';
 
                 if (!buyerName) {
                     showToast('❌ Masukkan nama pembeli.', 'error');
@@ -713,6 +865,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (tableSelect) tableSelect.focus();
                     return;
                 }
+                if (!paymentMethod) {
+                    showToast('❌ Pilih metode pembayaran.', 'error');
+                    if (paymentMethodSelect) paymentMethodSelect.focus();
+                    return;
+                }
                 if (!cart.length) {
                     showToast('❌ Keranjang kosong. Tambahkan item ke keranjang.', 'error');
                     return;
@@ -722,13 +879,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const orders = getOrders();
                     const clonedItems = cart.map(it => ({ category: it.category, itemName: it.itemName, price: it.price, quantity: it.quantity, subtotal: it.subtotal }));
                     const total = clonedItems.reduce((s, it) => s + it.subtotal, 0);
+                    const receiptNumber = generateReceiptNumber();
 
                     if (editingId) {
                         // Update existing order (admin only - also validated earlier)
                         const idx = orders.findIndex(o => o.id === editingId);
                         if (idx !== -1) {
                             const prevCompleted = orders[idx].completed || false;
-                            orders[idx] = { id: editingId, buyerName, tableNumber, items: clonedItems, total, completed: prevCompleted };
+                            orders[idx] = { id: editingId, buyerName, tableNumber, items: clonedItems, total, paymentMethod, receiptNumber, completed: prevCompleted };
                             saveOrders(orders);
                             showToast('✅ Perubahan pesanan berhasil disimpan!', 'success');
                         } else {
@@ -738,14 +896,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (submitBtn) submitBtn.textContent = initialSubmitText;
                     } else {
                         const id = Date.now().toString();
-                        const orderData = { buyerName, tableNumber, items: clonedItems, total, completed: false };
-                        orders.push({ id, ...orderData });
+                        const orderData = { buyerName, tableNumber, items: clonedItems, total, paymentMethod, receiptNumber, completed: false };
+                        const newOrder = { id, ...orderData };
+                        orders.push(newOrder);
                         saveOrders(orders);
                         
                         // Also save to API
                         await saveOrderViaAPI(orderData);
                         
                         showToast('✅ Pesanan berhasil disimpan!', 'success');
+                        
+                        // Show receipt after saving
+                        setTimeout(() => {
+                            showReceiptModal(newOrder);
+                        }, 500);
                     }
 
                     orderForm.reset();
@@ -756,6 +920,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         populateItemsForCategory('Minum');
                     }
                     if (tableSelect) tableSelect.value = '';
+                    if (paymentMethodSelect) paymentMethodSelect.value = '';
                 } catch (err) {
                     console.error('Error:', err);
                     showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
@@ -868,6 +1033,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         badge.className = 'badge bg-success';
                         badge.textContent = 'Selesai';
                         tdActions.appendChild(badge);
+
+                        const receiptBtn = document.createElement('button');
+                        receiptBtn.className = 'receipt-btn';
+                        receiptBtn.type = 'button';
+                        receiptBtn.textContent = '🧾 Struk';
+                        receiptBtn.style.cssText = 'background: #17a2b8; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px; margin-left: 5px;';
+                        receiptBtn.addEventListener('click', () => {
+                            showReceiptModal(order);
+                        });
+                        tdActions.appendChild(receiptBtn);
 
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = 'delete-btn';
