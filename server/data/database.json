@@ -141,6 +141,25 @@
       "completed": false,
       "createdAt": 1765790415267,
       "id": 7
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Mango Yakult",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "cash",
+      "receiptNumber": "RCP-251215-2611",
+      "completed": false,
+      "createdAt": 1765804462499,
+      "id": 8
     }
   ],
   "settings": {}

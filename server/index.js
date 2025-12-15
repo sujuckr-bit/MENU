@@ -24,9 +24,31 @@ async function main() {
     console.log('Created default admin in database');
   }
   const app = express();
-  app.use(cors({ origin: true, credentials: true }));
+  // Configure CORS with explicit whitelist (allow frontend and localhost)
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8000';
+  const allowedOrigins = [frontendUrl, 'http://127.0.0.1:8000', 'http://localhost:8000'];
   app.use(bodyParser.json());
-  app.use(session({ secret: 'change-this-secret', resave: false, saveUninitialized: false }));
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow non-browser or same-origin requests with no origin (e.g. curl, server-side)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
+      return callback(new Error('CORS policy: Origin not allowed'));
+    },
+    credentials: true
+  }));
+
+  // Session secret must be provided via env var in production
+  const sessionSecret = process.env.SESSION_SECRET || 'dev-secret-change-this-in-production';
+  if (process.env.NODE_ENV === 'production' && sessionSecret === 'dev-secret-change-this-in-production') {
+    console.warn('[SECURITY] Using default session secret in production. Set SESSION_SECRET env var.');
+  }
+  app.use(session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+  }));
 
   // Serve static files from parent directory
   // Intercept asset requests and serve from RAM cache for faster repeated access
@@ -315,6 +337,19 @@ async function main() {
 
   app.post('/api/orders', async (req, res) => {
     const order = req.body || {};
+    // Basic server-side validation
+    if (typeof order.buyerName !== 'string' || !order.buyerName.trim()) return res.status(400).json({ error: 'Invalid buyerName' });
+    if (!order.items || !Array.isArray(order.items) || order.items.length === 0) return res.status(400).json({ error: 'Invalid items' });
+    // Validate each item
+    for (const it of order.items) {
+      if (typeof it.itemName !== 'string' || !it.itemName.trim()) return res.status(400).json({ error: 'Invalid itemName' });
+      if (typeof it.price !== 'number' || isNaN(it.price) || it.price < 0) return res.status(400).json({ error: 'Invalid item price' });
+      if (typeof it.quantity !== 'number' || isNaN(it.quantity) || it.quantity <= 0) return res.status(400).json({ error: 'Invalid item quantity' });
+      if (typeof it.subtotal !== 'number' || isNaN(it.subtotal) || it.subtotal < 0) return res.status(400).json({ error: 'Invalid item subtotal' });
+    }
+    if (typeof order.total !== 'number' || isNaN(order.total) || order.total < 0) return res.status(400).json({ error: 'Invalid total' });
+    if (order.paymentMethod && !['qris', 'tunai', 'cash'].includes(String(order.paymentMethod).toLowerCase())) return res.status(400).json({ error: 'Unsupported payment method. Use: qris or tunai' });
+
     order.createdAt = Date.now();
     const id = db.addOrder(order);
     broadcastUpdate('order_created', { id, ...order });
@@ -354,6 +389,7 @@ async function main() {
     if (!req.session.isAdmin) return res.status(403).json({ error: 'forbidden' });
     const { username = 'admin', newPassword } = req.body || {};
     if (!newPassword) return res.status(400).json({ error: 'missing password' });
+    if (typeof newPassword !== 'string' || newPassword.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
     const hash = await bcrypt.hash(newPassword, 10);
     db.setUserPassword(username, hash);
     res.json({ ok: true });
