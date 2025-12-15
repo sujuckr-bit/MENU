@@ -30,7 +30,19 @@
             <div class="collapse navbar-collapse" id="navbarEdit">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
-                        <a href="admin-panel.html" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">← Kembali ke Menu Manager</a>
+                        <a class="nav-link" href="index.html" style="color: #495057; font-weight: 500;">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pesanan-masuk.html" style="color: #495057; font-weight: 500;">Pesanan Masuk</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px; color: white; font-weight: 600;"><i class="bi bi-pencil-square me-2"></i>Buat Pesanan</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="admin.html" class="btn btn-sm btn-outline-primary" style="border-radius: 6px;">← Kembali ke Menu Manager</a>
                     </li>
                 </ul>
             </div>
@@ -80,6 +92,7 @@
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/api-config.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="admin-nav.js"></script>
     <script>
         // Check admin
         if (!isAdmin()) {
@@ -104,7 +117,7 @@
             const c = document.createElement('div');
             c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
             document.body.appendChild(c);
-            setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
+            setTimeout(()=>{ c.remove(); window.location.href='admin.html'; },700);
         }
 
         const itemNameEl = document.getElementById('itemName');
@@ -124,7 +137,7 @@
                     const c = document.createElement('div');
                     c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
                     document.body.appendChild(c);
-                    setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
+                    setTimeout(()=>{ c.remove(); window.location.href='admin.html'; },700);
                     return;
                 }
 
@@ -138,7 +151,7 @@
                 const c = document.createElement('div');
                 c.textContent = m; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='#dc3545'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999';
                 document.body.appendChild(c);
-                setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
+                setTimeout(()=>{ c.remove(); window.location.href='admin.html'; },700);
             }
         }
 
@@ -192,7 +205,7 @@
             menus[category][itemIndex] = updatedItem;
             saveMenus(menus);
 
-            const c = document.createElement('div'); c.textContent = 'Item berhasil diperbarui!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
+            const c = document.createElement('div'); c.textContent = 'Item berhasil diperbarui!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin.html'; },700);
         });
 
         // Handle delete
@@ -201,7 +214,7 @@
 
             menus[category].splice(itemIndex, 1);
             saveMenus(menus);
-            const c = document.createElement('div'); c.textContent = 'Item berhasil dihapus!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin-panel.html'; },700);
+            const c = document.createElement('div'); c.textContent = 'Item berhasil dihapus!'; c.style.position='fixed'; c.style.right='20px'; c.style.bottom='20px'; c.style.background='linear-gradient(90deg,#28a745,#20c997)'; c.style.color='white'; c.style.padding='10px 14px'; c.style.borderRadius='8px'; c.style.zIndex='9999'; document.body.appendChild(c); setTimeout(()=>{ c.remove(); window.location.href='admin.html'; },700);
         });
 
         // Load item on page load

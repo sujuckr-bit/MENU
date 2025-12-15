@@ -229,10 +229,37 @@
             justify-content: center;
             flex-wrap: wrap;
         }
+        /* Admin sidebar layout */
+        .admin-layout { display: flex; gap: 24px; align-items: flex-start; }
+        .admin-sidebar { width: 240px; background: #ffffff; border-radius: 10px; padding: 18px; border: 1px solid #e9ecef; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: sticky; top: 24px; height: fit-content; }
+        /* Sync indicator styles */
+        .navbar { position: relative; }
+        /* Sync indicator: part of navbar on desktop, fixed on mobile */
+        #syncStatus { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-weight: 700; color: #333; white-space: nowrap; }
+        .sync-indicator { display: inline-flex; align-items: center; gap: 6px; }
+        .sync-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: 0 0 10px; }
+        .sync-dot.online { background: #28a745; box-shadow: 0 0 8px rgba(40,167,69,0.18); }
+        .sync-dot.syncing { background: #ffc107; box-shadow: 0 0 8px rgba(255,193,7,0.18); animation: syncPulse 1.2s infinite ease-in-out; }
+        .sync-dot.offline { background: #6c757d; box-shadow: none; }
+        .sync-dot.error { background: #dc3545; box-shadow: 0 0 8px rgba(220,53,69,0.18); }
+        @keyframes syncPulse { 0%{transform:scale(1)}50%{transform:scale(1.35)}100%{transform:scale(1)} }
+        .sync-text { font-size: 0.85rem; color: #333; line-height: 1.2; }
+        /* Mobile only: move to fixed top-right to avoid navbar overflow */
+        @media (max-width: 992px) {
+            #syncStatus { position: fixed; right: 12px; top: 70px; z-index: 1100; padding: 5px 8px; font-size: 0.8rem; }
+        }
+        .sidebar-brand { font-weight: 800; color: #0d6efd; margin-bottom: 12px; display:flex; align-items:center; gap:10px; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { margin-bottom: 8px; }
+        .sidebar-nav a { display: flex; align-items: center; gap:10px; color: #495057; text-decoration: none; padding: 8px 10px; border-radius: 8px; font-weight: 600; }
+        .sidebar-nav a:hover { background: linear-gradient(90deg, rgba(13,110,253,0.06), rgba(13,110,253,0.03)); color: #0d6efd; }
+        .admin-main { flex: 1; }
         @media (max-width: 768px) {
             .admin-container {
                 padding: 15px;
             }
+            .admin-layout { flex-direction: column; }
+            .admin-sidebar { width: 100%; position: relative; top: auto; margin-bottom: 16px; }
             .section-card {
                 padding: 20px;
             }
@@ -269,22 +296,17 @@
                         <a class="nav-link" href="index.html" style="color: #495057; font-weight: 500;">Beranda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="pesanan-saya.html" style="color: #495057; font-weight: 500;">Pesanan Saya</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 500;">Daftar</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="qris-generator.html" style="color: #495057; font-weight: 500;"><i class="bi bi-qr-code me-1"></i> QRIS Generator</a>
+                        <a class="nav-link" href="pesanan-masuk.html" style="color: #495057; font-weight: 500;">Pesanan Masuk</a>
                     </li>
                     <li class="nav-item ms-3">
                         <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px; color: white;"><i class="bi bi-pencil-square me-2"></i>Buat Pesanan</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <span id="syncStatus" class="badge bg-success" style="padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
-                            <span class="spinner-border spinner-border-sm" id="syncSpinner" style="display: none; width: 12px; height: 12px;"></span>
-                            <span id="syncStatusText"><i class="bi bi-check-circle-fill" style="color: #28a745;"></i> Siap</span>
-                        </span>
+                        <div id="syncStatus" class="sync-indicator sync-fixed" role="status" aria-live="polite" title="Status sinkronisasi">
+                            <span id="syncDot" class="sync-dot online" aria-hidden="true"></span>
+                            <span id="syncStatusText" class="sync-text">Siap</span>
+                            <span class="spinner-border spinner-border-sm" id="syncSpinner" style="display: none; width: 14px; height: 14px;" role="status" aria-hidden="true"></span>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -292,15 +314,31 @@
     </nav>
 
     <div class="admin-container">
-        <div class="header-section">
-            <h1><i class="bi bi-gear me-2" style="color: #00a856;"></i>Edit Menu Dashboard</h1>
-            <p class="text-muted-custom">Kelola kategori, item, harga, dan status stock menu dengan mudah dan real-time</p>
-        </div>
+        <div class="admin-layout">
+            <aside class="admin-sidebar" aria-label="Admin sidebar">
+                <div class="sidebar-brand">
+                    <img src="/logo.png" alt="logo" height="28">
+                    <div>Admin Menu</div>
+                </div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="admin.html"><i class="bi bi-pencil-square"></i> Edit Menu</a></li>
+                        <li><a href="daftar.html"><i class="bi bi-list-check"></i> Daftar Pesanan</a></li>
+                        <li><a href="payment-history.html"><i class="bi bi-clock-history"></i> Riwayat Pembayaran</a></li>
+                        <li><a href="#" onclick="logout();return false;"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    </ul>
+                </nav>
+            </aside>
+            <main class="admin-main">
+                <div class="header-section">
+                    <h1><i class="bi bi-gear me-2" style="color: #00a856;"></i>Edit Menu Dashboard</h1>
+                    <p class="text-muted-custom">Kelola kategori, item, harga, dan status stock menu dengan mudah dan real-time</p>
+                </div>
 
-        <div id="app">
+                <div id="app">
             <!-- TAMBAH KATEGORI -->
             <div class="section-card">
-                <div class="section-title">➕ Tambah Kategori Baru</div>
+                <div class="section-title"><i class="bi bi-plus-circle"></i> Tambah Kategori Baru</div>
                 <div style="display: flex; gap: 10px;">
                     <input id="newCategoryName" class="form-control" placeholder="Nama kategori (contoh: Minuman Hangat)" style="flex: 1;" />
                     <button id="addCategoryBtn" class="btn-primary-custom">Tambah</button>
@@ -309,7 +347,7 @@
 
             <!-- TAMBAH ITEM BARU (CRUD) -->
             <div class="section-card">
-                <div class="section-title">➕ Tambah Item Baru</div>
+                <div class="section-title"><i class="bi bi-plus-circle"></i> Tambah Item Baru</div>
                 <div style="background: #f0f7ff; padding: 20px; border-radius: 8px; border: 1px solid #d9e9f7;">
                     <div class="row g-3">
                         <div class="col-md-3">
@@ -370,42 +408,6 @@
                     <button id="saveBtn" class="btn-primary-custom"><i class="bi bi-save me-1"></i>Simpan Perubahan</button>
                     <button id="resetBtn" class="btn-secondary-custom"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset ke Default</button>
                 </div>
-            </div>
-            
-            <!-- PENGATURAN QRIS -->
-            <div class="section-card">
-                <div class="section-title"><i class="bi bi-qr-code me-2" style="color: #00a856;"></i>Pengaturan QRIS Statis</div>
-                <p class="text-muted-custom">Kelola data merchant QRIS untuk static QR code (tanpa amount dinamis).</p>
-                <form id="qrisSettingsForm">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label fw-600">NMID (Nomor ID Merchant)</label>
-                                <input id="qrisNmidAdmin" type="text" class="form-control" placeholder="ID1025389810363" required />
-                                <small class="text-muted-custom d-block mt-1">Contoh: ID1025389810363</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label fw-600">Nama Merchant</label>
-                                <input id="qrisMerchantNameAdmin" type="text" class="form-control" placeholder="SERVIS KOMPUTER" required />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label fw-600">Kota</label>
-                                <input id="qrisCityAdmin" type="text" class="form-control" placeholder="Makassar" required />
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button id="saveQrisBtn" type="button" class="btn-primary-custom"><i class="bi bi-save me-1"></i>Simpan Pengaturan QRIS</button>
-                        <a href="qris-generator.html" class="btn btn-outline-primary" style="padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;"><i class="bi bi-qr-code me-1"></i>Buka Generator QRIS</a>
-                    </div>
-                    <div id="qrisMessage" class="text-muted-custom" style="margin-top: 10px;"></div>
-                </form>
             </div>
             
             <!-- UBAH PASSWORD ADMIN -->
@@ -496,64 +498,6 @@
                 if (typeof logoutAdmin === 'function') logoutAdmin();
                 else sessionStorage.removeItem('isAdmin');
                 location.href = 'index.html';
-            });
-        }
-    </script>
-    <script>
-        // Load QRIS settings on page load
-        (async function loadQrisSettings() {
-            try {
-                const result = await apiCall('settings');
-                if (result.ok && result.data) {
-                    document.getElementById('qrisNmidAdmin').value = result.data.QRIS_MERCHANT_NMID || 'ID1025389810363';
-                    document.getElementById('qrisMerchantNameAdmin').value = result.data.MERCHANT_NAME || 'BAZAR HmI';
-                    document.getElementById('qrisCityAdmin').value = result.data.MERCHANT_CITY || 'Makassar';
-                }
-            } catch (e) {
-                console.error('Failed to load QRIS settings:', e);
-            }
-        })();
-
-        // Save QRIS settings
-        const saveQrisBtn = document.getElementById('saveQrisBtn');
-        const qrisMessage = document.getElementById('qrisMessage');
-        if (saveQrisBtn) {
-            saveQrisBtn.addEventListener('click', async () => {
-                const nmid = document.getElementById('qrisNmidAdmin').value.trim();
-                const name = document.getElementById('qrisMerchantNameAdmin').value.trim();
-                const city = document.getElementById('qrisCityAdmin').value.trim();
-
-                if (!nmid || !name || !city) {
-                    qrisMessage.textContent = '❌ Mohon isi semua field';
-                    qrisMessage.style.color = '#dc3545';
-                    return;
-                }
-
-                try {
-                    const result = await apiCall('settings', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            QRIS_MERCHANT_NMID: nmid,
-                            MERCHANT_NAME: name,
-                            MERCHANT_CITY: city
-                        })
-                    });
-
-                    if (result.ok) {
-                        qrisMessage.textContent = '✅ Pengaturan QRIS berhasil disimpan!';
-                        qrisMessage.style.color = '#198754';
-                        if (typeof showToast === 'function') {
-                            showToast('✅ QRIS settings saved successfully', 'success');
-                        }
-                    } else {
-                        qrisMessage.textContent = '❌ Gagal menyimpan pengaturan';
-                        qrisMessage.style.color = '#dc3545';
-                    }
-                } catch (e) {
-                    console.error('Error saving QRIS settings:', e);
-                    qrisMessage.textContent = '❌ Error: ' + e.message;
-                    qrisMessage.style.color = '#dc3545';
-                }
             });
         }
     </script>

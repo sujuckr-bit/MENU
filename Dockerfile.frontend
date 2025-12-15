@@ -7,7 +7,7 @@ WORKDIR /app
 COPY serve.js .
 
 # Copy all frontend assets
-COPY index.html admin.html admin-login.html pesan.html pesanan-saya.html daftar.html admin-panel.html ./
+COPY index.html admin.html admin-login.html pesan.html pesanan-masuk.html daftar.html payment-history.html ./
 COPY styles.css script.js admin.js admin-nav.js ./
 COPY assets ./assets
 

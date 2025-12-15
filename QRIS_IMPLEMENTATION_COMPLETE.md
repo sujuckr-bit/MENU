@@ -186,7 +186,7 @@ POST /api/orders
 1. Customer goes to `/pesan.html` (Order Page)
 2. Selects items, chooses payment method = "QRIS"
 3. Submits order → saved to server with `paymentMethod: 'qris'`
-4. Customer goes to `/pesanan-saya.html` (My Orders)
+4. Customer goes to `/pesanan-masuk.html` (My Orders)
 5. Finds their order, clicks "🧾 Lihat Struk" or "🔍 Lihat QR"
 6. Modal opens showing:
    - Receipt with all details
@@ -259,7 +259,7 @@ POST /api/orders
 
 ### Not Modified (Working As-Is):
 - `pesan.html` (payment method selector already there)
-- `pesanan-saya.html` (order list display)
+- `pesanan-masuk.html` (order list display)
 - `index.html` (home page)
 - Other HTML/CSS files
 
@@ -285,7 +285,7 @@ node serve.js
    - Create order with QRIS payment method
    - Submit order
 
-2. **My Orders**: http://localhost:8000/pesanan-saya.html
+2. **My Orders**: http://localhost:8000/pesanan-masuk.html
    - See list of your orders
    - Click "🧾 Lihat Struk" to view receipt
    - Click "🔍 Lihat QR" to scan QRIS code

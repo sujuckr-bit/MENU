@@ -3,25 +3,28 @@ function updateSyncStatus(status) {
     const statusEl = document.getElementById('syncStatus');
     const textEl = document.getElementById('syncStatusText');
     const spinnerEl = document.getElementById('syncSpinner');
-    
+    const dotEl = document.getElementById('syncDot');
+
     if (!statusEl) return; // element not yet loaded
-    
+
+    // default hide spinner
+    if (spinnerEl) spinnerEl.style.display = 'none';
+
+    if (dotEl) dotEl.className = 'sync-dot';
+
     if (status === 'syncing') {
-        statusEl.className = 'badge bg-info';
-        textEl.textContent = '🔄 Menyimpan...';
+        if (dotEl) dotEl.classList.remove('online','offline','error'); dotEl.classList.add('syncing');
+        if (textEl) textEl.textContent = 'Menyimpan...';
         if (spinnerEl) spinnerEl.style.display = 'inline-block';
     } else if (status === 'online') {
-        statusEl.className = 'badge bg-success';
-        textEl.textContent = '🟢 Siap';
-        if (spinnerEl) spinnerEl.style.display = 'none';
+        if (dotEl) dotEl.classList.remove('syncing','offline','error'); dotEl.classList.add('online');
+        if (textEl) textEl.textContent = '🟢 Siap';
     } else if (status === 'offline') {
-        statusEl.className = 'badge bg-warning';
-        textEl.textContent = '🟡 Offline (queue)';
-        if (spinnerEl) spinnerEl.style.display = 'none';
+        if (dotEl) dotEl.classList.remove('syncing','online','error'); dotEl.classList.add('offline');
+        if (textEl) textEl.textContent = '🟡 Offline';
     } else if (status === 'error') {
-        statusEl.className = 'badge bg-danger';
-        textEl.textContent = '🔴 Error';
-        if (spinnerEl) spinnerEl.style.display = 'none';
+        if (dotEl) dotEl.classList.remove('syncing','online','offline'); dotEl.classList.add('error');
+        if (textEl) textEl.textContent = '🔴 Error';
     }
 }
 

@@ -80,7 +80,7 @@ node serve.js                   # Frontend on :8000
 - Submit order
 
 ### 3. View Receipt & QR
-- Open http://localhost:8000/pesanan-saya.html
+- Open http://localhost:8000/pesanan-masuk.html
 - Click "🧾 Lihat Struk" → see receipt
 - Click "🔍 Lihat QR" → see QR code
 - Click "🖨️ Cetak" → print

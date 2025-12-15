@@ -182,3 +182,10 @@ async function changeAdminPasswordViaAPI(newPassword) {
 function isAdminLoggedIn() {
     return sessionStorage.getItem('isAdmin') === '1';
 }
+
+// Backwards compatibility: expose global API_BASE_URL expected by older pages
+try {
+    if (typeof window !== 'undefined') window.API_BASE_URL = API_CONFIG.baseUrl;
+} catch (e) {
+    // ignore in non-browser environments
+}

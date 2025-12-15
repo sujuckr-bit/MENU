@@ -22,7 +22,7 @@ MENU/
 ├── pesan.html                         ✅ ORDER PAGE
 │   └── Payment method selector        💳 QRIS/Cash choice
 │
-├── pesanan-saya.html                  ✅ MY ORDERS PAGE
+├── pesanan-masuk.html                  ✅ MY ORDERS PAGE
 │   └── Receipt/QR buttons             🧾 View struk & QR
 │
 ├── server/
@@ -66,7 +66,7 @@ Database (orders.json)
 ### Viewing Receipt & QR
 
 ```
-Customer (pesanan-saya.html)
+Customer (pesanan-masuk.html)
     ↓ [Click "🧾 Lihat Struk"]
     ↓
 script.js (showReceiptModal)

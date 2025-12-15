@@ -298,3 +298,40 @@ footer a:hover {
         padding: 1rem;
     }
 }
+
+/* Small Admin Menu badge (used on daftar.html) */
+.admin-menu {
+    display: inline-block;
+    background: #ffffff;
+    color: #163246;
+    border: 1px solid rgba(22,50,70,0.08);
+    padding: 0.45rem 0.75rem;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-top: 0.6rem;
+}
+
+@media (min-width: 992px) {
+    .admin-menu {
+        float: right;
+        margin-top: -2.25rem;
+    }
+}
+
+/* Admin layout & sidebar (match admin.html) */
+.admin-layout { display: flex; gap: 24px; align-items: flex-start; }
+.admin-sidebar { width: 240px; background: #ffffff; border-radius: 10px; padding: 18px; border: 1px solid #e9ecef; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: sticky; top: 24px; height: fit-content; }
+.sidebar-brand { font-weight: 800; color: #0d6efd; margin-bottom: 12px; display:flex; align-items:center; gap:10px; }
+.sidebar-brand img { height: 28px; }
+.sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+.sidebar-nav li { margin-bottom: 8px; }
+.sidebar-nav a { display: flex; align-items: center; gap:10px; color: #495057; text-decoration: none; padding: 8px 10px; border-radius: 8px; font-weight: 600; }
+.sidebar-nav a:hover { background: linear-gradient(90deg, rgba(13,110,253,0.06), rgba(13,110,253,0.03)); color: #0d6efd; }
+.admin-main { flex: 1; }
+
+@media (max-width: 768px) {
+    .admin-layout { flex-direction: column; }
+    .admin-sidebar { width: 100%; position: relative; top: auto; margin-bottom: 16px; }
+}

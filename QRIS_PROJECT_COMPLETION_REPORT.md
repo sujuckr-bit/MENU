@@ -134,7 +134,7 @@ if (ct.includes('application/json')) {
 1. Customer orders on `/pesan.html`
 2. Selects "QRIS" payment method
 3. Submits order → saved with `paymentMethod: 'qris'`
-4. Views orders on `/pesanan-saya.html`
+4. Views orders on `/pesanan-masuk.html`
 5. Clicks "🧾 Lihat Struk" → sees receipt in modal
 6. Clicks "🔍 Lihat QR" → sees QRIS QR code
 7. Scans QR with QRIS app to pay

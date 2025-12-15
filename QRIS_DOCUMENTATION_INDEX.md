@@ -146,7 +146,7 @@ node tools/validate_qris.js
 ### URLs to Test
 ```
 http://localhost:8000/pesan.html           → Order page (create QRIS order)
-http://localhost:8000/pesanan-saya.html    → My orders (view struk/QR)
+http://localhost:8000/pesanan-masuk.html    → My orders (view struk/QR)
 http://localhost:8000/daftar.html          → Admin (configure QRIS)
 ```
 

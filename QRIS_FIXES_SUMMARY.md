@@ -219,7 +219,7 @@ node serve.js
 1. Go to http://localhost:8000/pesan.html
 2. Order something with payment method = QRIS
 3. Submit order
-4. Go to http://localhost:8000/pesanan-saya.html
+4. Go to http://localhost:8000/pesanan-masuk.html
 5. Click "🧾 Lihat Struk" → Should show receipt modal
 6. Click "🔍 Lihat QR" → Should show QR code in modal
 7. Click "🖨️ Cetak Struk" → Should open browser print dialog
@@ -234,7 +234,7 @@ node serve.js
 | QR not showing | Check if external QR service URL is accessible |
 | Receipt doesn't print | Use browser print CSS and select 80mm width |
 | Settings not saved | Check browser console for API errors, verify POST endpoint |
-| `myOrdersContainer is undefined` | Ensure `pesanan-saya.html` loads before `script.js` |
+| `myOrdersContainer is undefined` | Ensure `pesanan-masuk.html` loads before `script.js` |
 
 ---
 

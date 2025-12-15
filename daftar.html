@@ -33,10 +33,7 @@
                         <a class="nav-link" href="index.html" style="color: #495057; font-weight: 500;">Beranda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="pesanan-saya.html" style="color: #495057; font-weight: 500;">Pesanan Saya</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="daftar.html" style="color: #495057; font-weight: 700; border-bottom: 2px solid #17a2b8;">Daftar</a>
+                        <a class="nav-link" href="pesanan-masuk.html" style="color: #495057; font-weight: 500;">Pesanan Masuk</a>
                     </li>
                     <li class="nav-item ms-3">
                         <a href="pesan.html" class="btn btn-primary btn-sm px-4" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 10px; color: white; font-weight: 600;"><i class="bi bi-pencil-square me-2"></i>Buat Pesanan</a>
@@ -47,10 +44,27 @@
     </nav>
 
     <div class="container my-5" id="adminContentContainer" style="display: none;">
-        <div class="mb-5">
-            <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52;"><i class="bi bi-list-check" style="color: #00a856;"></i> Daftar Pesanan</h1>
-            <p class="lead text-muted">Kelola semua pesanan yang masuk dengan mudah</p>
-        </div>
+        <div class="admin-layout">
+            <aside class="admin-sidebar" aria-label="Admin sidebar">
+                <div class="sidebar-brand">
+                    <img src="/logo.png" alt="logo" height="28">
+                    <div>Admin Menu</div>
+                </div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li><a href="admin.html"><i class="bi bi-pencil-square"></i> Edit Menu</a></li>
+                        <li><a href="daftar.html"><i class="bi bi-list-check"></i> Daftar Pesanan</a></li>
+                        <li><a href="payment-history.html"><i class="bi bi-clock-history"></i> Riwayat Pembayaran</a></li>
+                        <li><a href="#" onclick="logout();return false;"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <main class="admin-main">
+                <div class="mb-5">
+                    <h1 class="display-5 fw-bold mb-3" style="color: #1a3a52;"><i class="bi bi-list-check" style="color: #00a856;"></i> Daftar Pesanan</h1>
+                    <p class="lead text-muted">Kelola semua pesanan yang masuk dengan mudah</p>
+                </div>
 
         <!-- Access Denied Message for Non-Admin -->
         <div id="accessDeniedMsg" class="alert alert-warning alert-dismissible fade show text-center" style="border-radius: 8px; display: none;">
@@ -114,27 +128,6 @@
                 <button id="logoutAdminBtn" class="btn btn-danger w-100" style="font-weight: 600; border-radius: 8px;">
                     🚪 Logout Admin
                 </button>
-                <hr class="my-4">
-                <h6 class="fw-bold mb-3" style="color: #1a3a52;">Pengaturan QRIS</h6>
-                <form id="adminQrisForm">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold" for="qrisNmid" style="color: #1a3a52;">QRIS NMID:</label>
-                            <input type="text" id="qrisNmid" class="form-control" placeholder="ID1025389..." required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold" for="qrisMerchantName" style="color: #1a3a52;">Nama Merchant:</label>
-                            <input type="text" id="qrisMerchantName" class="form-control" placeholder="BAZAR HmI">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold" for="qrisMerchantCity" style="color: #1a3a52;">Kota Merchant:</label>
-                            <input type="text" id="qrisMerchantCity" class="form-control" placeholder="MAKASSAR">
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button type="submit" id="saveQrisSettingsBtn" class="btn btn-sm btn-primary" style="font-weight:600;"><i class="bi bi-save me-1"></i>Simpan Pengaturan QRIS</button>
-                    </div>
-                </form>
             </div>
         </div>
 
@@ -177,6 +170,8 @@
                     </div>
                 </div>
             </div>
+                </div>
+            </main>
         </div>
     </div>
     </div><!-- Close adminContentContainer -->
@@ -239,7 +234,6 @@
     <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/toast.js"></script>
-    <script src="admin-nav.js"></script>
     
     <!-- SheetJS - GUNAKAN CDN ALTERNATIF -->
     <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
@@ -250,6 +244,13 @@
     <script src="script.js"></script>
         <script src="assets/js/realtime.js"></script>
     <script>
+        // Logout function for sidebar
+        function logout() {
+            if (typeof logoutAdmin === 'function') logoutAdmin();
+            else sessionStorage.removeItem('isAdmin');
+            location.href = 'index.html';
+        }
+
         // If user is not admin, show modal prompt; attach modal form to auth handler
         (function() {
             const isAdmin = sessionStorage.getItem('isAdmin') === '1';

@@ -323,9 +323,25 @@ async function main() {
     const orders = db.getOrders();
     const order = orders.find(o => o.id == req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
+    // Mark order completed and also record cash payment locally
     order.completed = true;
-    db.saveOrders(orders);
+    // If payment not already recorded, mark as cash (tunai) completed
+    if (!order.paymentStatus || order.paymentStatus !== 'completed') {
+      order.paymentStatus = 'completed';
+      order.paymentMethod = order.paymentMethod || 'tunai';
+      order.paidAt = new Date().toISOString();
+    }
+
+    await db.saveOrders(orders);
     broadcastUpdate('order_updated', order);
+    // Also emit a payment update event for realtime clients
+    broadcastUpdate('payment_updated', {
+      orderId: order.id || order._id,
+      status: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      paidAt: order.paidAt
+    });
+
     res.json({ ok: true });
   });
 
@@ -342,6 +358,209 @@ async function main() {
   // Session info
   app.get('/api/me', (req, res) => {
     res.json({ isAdmin: !!req.session.isAdmin, username: req.session.username || null });
+  });
+
+  // ======== PAYMENT INTEGRATION ========
+  const PaymentGateway = require('./payment-gateway');
+  const PaymentWebhookHandler = require('./payment-webhook');
+  const InvoiceGenerator = require('./invoice-generator');
+
+  const paymentGateway = new PaymentGateway();
+  const webhookHandler = new PaymentWebhookHandler(db);
+  const invoiceGenerator = new InvoiceGenerator();
+
+  // Get available payment methods
+  app.get('/api/payment-methods', (req, res) => {
+    const methods = paymentGateway.getPaymentMethods();
+    res.json({ success: true, methods });
+  });
+
+  // Initialize payment for order
+  app.post('/api/payment/initialize', async (req, res) => {
+    try {
+      const { orderId, amount, method, customerName, description, orderData } = req.body;
+
+      if (!orderId || !amount || !method) {
+        return res.status(400).json({ success: false, error: 'Missing required fields' });
+      }
+
+      let result;
+      switch (method.toLowerCase()) {
+        case 'qris':
+          result = paymentGateway.generateQRISPayment({
+            orderId,
+            amount,
+            customerName: customerName || 'Customer',
+            description: description || `Order #${orderId}`
+          });
+          break;
+        case 'tunai':
+        case 'cash':
+          result = paymentGateway.generateCashPayment({
+            orderId,
+            amount,
+            customerName: customerName || 'Customer'
+          });
+          break;
+        default:
+          return res.status(400).json({ success: false, error: 'Unsupported payment method. Use: qris or tunai' });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error('Payment initialization error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Get payment status
+  app.get('/api/payment/status/:orderId', async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const result = await webhookHandler.getPaymentStatus(orderId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Get payment history
+  app.post('/api/payment-history', async (req, res) => {
+    try {
+      const { buyerName, method, status } = req.body;
+
+      if (!buyerName) {
+        return res.status(400).json({ success: false, error: 'Buyer name required' });
+      }
+
+      const result = await webhookHandler.getPaymentHistory(buyerName);
+      
+      if (result.success && result.payments) {
+        // Apply additional filters
+        let filtered = result.payments;
+        if (method) {
+          filtered = filtered.filter(p => p.paymentMethod === method);
+        }
+        if (status) {
+          filtered = filtered.filter(p => p.status === status);
+        }
+        result.payments = filtered;
+        result.count = filtered.length;
+      }
+
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Webhook handlers for payment providers
+  app.post('/api/payment-webhook/qris', async (req, res) => {
+    try {
+      const { signature } = req.headers;
+      if (signature && !webhookHandler.verifySignature(req.body, signature)) {
+        return res.status(401).json({ success: false, error: 'Invalid signature' });
+      }
+
+      const result = await webhookHandler.handleQRISWebhook(req.body);
+      res.json(result);
+
+      if (result.success) {
+        broadcastUpdate('payment_updated', result);
+      }
+    } catch (error) {
+      console.error('QRIS Webhook error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Confirm cash payment (Tunai)
+  app.post('/api/payment-webhook/tunai', async (req, res) => {
+    try {
+      const { orderId } = req.body;
+      if (!orderId) {
+        return res.status(400).json({ success: false, error: 'Order ID required' });
+      }
+
+      const result = await webhookHandler.confirmCashPayment(orderId);
+      res.json(result);
+
+      if (result.success) {
+        broadcastUpdate('payment_updated', result);
+      }
+    } catch (error) {
+      console.error('Cash Payment Confirmation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+
+  // Generate invoice
+  app.post('/api/invoice/generate', async (req, res) => {
+    try {
+      const { orderId, paymentStatus } = req.body;
+
+      if (!orderId) {
+        return res.status(400).json({ success: false, error: 'Order ID required' });
+      }
+
+      // Get order from database
+      const orders = await db.readOrders();
+      const order = orders.find(o => (o.id || o._id) === orderId);
+
+      if (!order) {
+        return res.status(404).json({ success: false, error: 'Order not found' });
+      }
+
+      // Create invoice data
+      const invoiceData = invoiceGenerator.createInvoiceData(order, paymentStatus || 'pending');
+
+      // Save invoice
+      const saveResult = await invoiceGenerator.saveInvoice(invoiceData);
+
+      if (saveResult.success) {
+        res.json({ success: true, invoice: invoiceData });
+      } else {
+        res.status(500).json(saveResult);
+      }
+    } catch (error) {
+      console.error('Invoice generation error:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Get invoice
+  app.get('/api/invoice/:invoiceNumber', async (req, res) => {
+    try {
+      const { invoiceNumber } = req.params;
+      const result = await invoiceGenerator.getInvoice(invoiceNumber);
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(404).json(result);
+      }
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // Get invoice as HTML
+  app.get('/api/invoice/:invoiceNumber/html', async (req, res) => {
+    try {
+      const { invoiceNumber } = req.params;
+      const result = await invoiceGenerator.getInvoice(invoiceNumber);
+
+      if (!result.success) {
+        return res.status(404).json(result);
+      }
+
+      const html = invoiceGenerator.formatInvoiceHTML(result.invoice);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(html);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
   });
 
   const port = process.env.PORT || 3000;

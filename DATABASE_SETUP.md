@@ -44,7 +44,7 @@ Buka browser ke folder root (misal: `http://localhost:8000` atau langsung buka `
 - **`assets/js/auth.js`** - Now uses server API instead of localStorage
 - **`pesan.html`** - Load api-config.js script
 - **`daftar.html`** - Load api-config.js script
-- **`pesanan-saya.html`** - Load api-config.js script
+- **`pesanan-masuk.html`** - Load api-config.js script
 - **`admin-login.html`** - Load api-config.js script
 - **`script.js`** - Fetch menus from API, save orders to API
 

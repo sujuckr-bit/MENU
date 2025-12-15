@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 extraQRSection = `
                     <div style="margin: 15px 0; padding: 12px 0; border-top: 1px dashed #999;">
                         <p style="text-align: center; margin: 0 0 8px 0; font-weight: 600; font-size: 11px; color: #1a3a52;"><i class="bi bi-qr-code me-1"></i> SCAN QRIS</p>
-                        <p style="text-align: center; margin: 0 0 10px 0; font-size: 9px; color: #666;">Gunakan GoPay, OVO, Dana</p>
+                        <p style="text-align: center; margin: 0 0 10px 0; font-size: 9px; color: #666;">Gunakan aplikasi pembayaran yang mendukung QRIS</p>
                         
                         <div style="position: relative; display: flex; justify-content: center; width: 100%;">
                             <img id="qrisImageReceipt" src="${staticQrisPath}" alt="QRIS Code" style="max-width: 180px; display: block; border-radius: 6px; border: 1px solid #ddd;" onerror="this.style.display='none'; document.getElementById('qrisPlaceholder_${receiptNumber}').style.display='block';"/>
@@ -1338,14 +1338,38 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!clientIsAdmin()) { showToast('Akses ditolak: hanya admin yang dapat menandai selesai.', 'error'); return; }
             const oldOrders = getOrders();
             showConfirmUndo('Tandai pesanan ini sebagai selesai?', () => {
-                const orders = getOrders();
-                const idx = orders.findIndex(o => o.id === id);
-                if (idx === -1) { showToast('Pesanan tidak ditemukan.', 'error'); return; }
-                orders[idx].completed = true;
-                saveOrders(orders);
-                loadOrders();
-                showToast('Pesanan ditandai selesai.', 'success');
-            });
+                    const orders = getOrders();
+                    const idx = orders.findIndex(o => o.id === id);
+                    if (idx === -1) { showToast('Pesanan tidak ditemukan.', 'error'); return; }
+                    orders[idx].completed = true;
+                    saveOrders(orders);
+
+                    // Save buyer name so payment-history can auto-load
+                    try {
+                        const buyer = (orders[idx].buyerName || '').trim();
+                        if (buyer) localStorage.setItem('lastBuyerName', buyer);
+                    } catch (e) { console.error('Could not save lastBuyerName', e); }
+
+                    // Notify backend to mark order complete (record payment server-side)
+                    (async function notifyBackend() {
+                        try {
+                            if (typeof API_BASE_URL !== 'undefined') {
+                                await fetch(`${API_BASE_URL}/api/orders/${id}/complete`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Notify backend failed:', err);
+                        }
+                    })();
+
+                    loadOrders();
+                    showToast('Pesanan ditandai selesai.', 'success');
+
+                    // Redirect to payment history to view the newly recorded payment (auto-load uses lastBuyerName)
+                    setTimeout(() => { window.location.href = 'payment-history.html'; }, 600);
+                });
         }
 
         // EXPORT TO EXCEL
@@ -1741,56 +1765,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Logout berhasil', 'success');
                         window.location.href = 'admin-login.html';
                     });
-                });
-            }
-
-            // QRIS settings form handlers
-            const qrisForm = document.getElementById('adminQrisForm');
-            const qrisNmidInput = document.getElementById('qrisNmid');
-            const qrisMerchantNameInput = document.getElementById('qrisMerchantName');
-            const qrisMerchantCityInput = document.getElementById('qrisMerchantCity');
-
-            async function loadQrisSettings() {
-                try {
-                    if (typeof fetchSettingsFromAPI === 'function') {
-                        const s = await fetchSettingsFromAPI();
-                        window.serverSettings = s || {};
-                        if (qrisNmidInput) qrisNmidInput.value = s.QRIS_MERCHANT_NMID || '';
-                        if (qrisMerchantNameInput) qrisMerchantNameInput.value = s.MERCHANT_NAME || '';
-                        if (qrisMerchantCityInput) qrisMerchantCityInput.value = s.MERCHANT_CITY || '';
-                    }
-                } catch (e) {
-                    console.error('Gagal load settings:', e);
-                }
-            }
-
-            if (qrisForm) {
-                // populate current values
-                loadQrisSettings();
-
-                qrisForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const nm = qrisNmidInput ? qrisNmidInput.value.trim() : '';
-                    const nmName = qrisMerchantNameInput ? qrisMerchantNameInput.value.trim() : '';
-                    const nmCity = qrisMerchantCityInput ? qrisMerchantCityInput.value.trim() : '';
-                    if (!nm) { showToast('<i class="bi bi-exclamation-circle-fill me-2" style="color: #dc3545;"></i>NMID tidak boleh kosong', 'error'); return; }
-                    try {
-                        const ok = await apiCall('settings', {
-                            method: 'POST',
-                            body: JSON.stringify({ QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity })
-                        });
-                        if (ok && ok.ok) {
-                            showToast('<i class="bi bi-check-circle-fill me-2" style="color: #28a745;"></i>Pengaturan QRIS berhasil disimpan', 'success');
-                            // refresh local settings
-                            window.serverSettings = { ...(window.serverSettings || {}), QRIS_MERCHANT_NMID: nm, MERCHANT_NAME: nmName, MERCHANT_CITY: nmCity };
-                        } else {
-                            showToast('❌ Gagal menyimpan pengaturan', 'error');
-                            console.error('Save settings failed', ok);
-                        }
-                    } catch (err) {
-                        console.error('Error saving settings:', err);
-                        showToast('❌ Terjadi kesalahan saat menyimpan', 'error');
-                    }
                 });
             }
         }

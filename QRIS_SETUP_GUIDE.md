@@ -5,8 +5,7 @@
 Everything is ready! Your app now has:
 - ✅ Static QRIS payment method
 - ✅ QRIS receipt modal with merchant card
-- ✅ QRIS Generator page
-- ✅ Admin settings management
+- ✅ Admin settings management (static QRIS)
 - ✅ Fallback merchant card display (when image missing)
 
 ## Final Step: Add Your QRIS Image
@@ -41,7 +40,6 @@ Test-Path "c:\Users\DELL\Desktop\MENU\assets\img\qris-static.png"
 
 ### Frontend (Client)
 - `script.js` - Receipt modal with QRIS display + fallback
-- `qris-generator.html` - QRIS generator page
 - `admin.html` - QRIS settings management section
 
 ### Backend (Server)
@@ -63,7 +61,6 @@ Accessible via API: `GET http://localhost:3000/api/settings`
 
 ✅ **Order Creation** with QRIS payment method  
 ✅ **Receipt Display** with merchant QR code  
-✅ **QRIS Generator** page (print-friendly)  
 ✅ **Admin Settings** to update merchant data  
 ✅ **Static QR** (no dynamic amount needed)  
 ✅ **Fallback UI** (works even without image file)

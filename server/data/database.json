@@ -912,6 +912,198 @@
       "completed": false,
       "createdAt": 1765729926081,
       "id": 38
+    },
+    {
+      "buyerName": "bang",
+      "tableNumber": "2",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Coklat (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-8557",
+      "completed": false,
+      "createdAt": 1765754337151,
+      "id": 39
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-3213",
+      "completed": false,
+      "createdAt": 1765767992352,
+      "id": 40
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "3",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-4062",
+      "completed": false,
+      "createdAt": 1765768064584,
+      "id": 41
+    },
+    {
+      "buyerName": "adann",
+      "tableNumber": "11",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Mango Soda",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-6421",
+      "completed": false,
+      "createdAt": 1765768522998,
+      "id": 42
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "cash",
+      "receiptNumber": "RCP-251215-7246",
+      "completed": false,
+      "createdAt": 1765768756527,
+      "id": 43
+    },
+    {
+      "buyerName": "adann",
+      "tableNumber": "10",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Juice Alpukat",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "cash",
+      "receiptNumber": "RCP-251215-9492",
+      "completed": false,
+      "createdAt": 1765768789214,
+      "id": 44
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "17",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Susu (Hot/Ice)",
+          "price": 25000,
+          "quantity": 1,
+          "subtotal": 25000
+        }
+      ],
+      "total": 25000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-3671",
+      "completed": false,
+      "createdAt": 1765769292776,
+      "id": 45
+    },
+    {
+      "buyerName": "suju",
+      "tableNumber": "16",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Es Teh Tawar",
+          "price": 18000,
+          "quantity": 1,
+          "subtotal": 18000
+        }
+      ],
+      "total": 18000,
+      "paymentMethod": "qris",
+      "receiptNumber": "RCP-251215-1308",
+      "completed": false,
+      "createdAt": 1765769757581,
+      "id": 46
+    },
+    {
+      "buyerName": "Test Customer",
+      "completed": false,
+      "items": [
+        {
+          "price": 25000,
+          "quantity": 2,
+          "name": "Nasi Goreng"
+        },
+        {
+          "price": 20000,
+          "quantity": 1,
+          "name": "Mie Goreng"
+        }
+      ],
+      "buyerPhone": "081234567890",
+      "buyerAddress": "Jl. Test No. 123",
+      "createdAt": 1765770253453,
+      "id": 47
+    },
+    {
+      "buyerName": "Test Customer",
+      "buyerPhone": "081234567890",
+      "buyerAddress": "Jl. Test No. 123",
+      "completed": false,
+      "items": [
+        {
+          "name": "Nasi Goreng",
+          "price": 25000,
+          "quantity": 2
+        },
+        {
+          "name": "Mie Goreng",
+          "price": 20000,
+          "quantity": 1
+        }
+      ],
+      "createdAt": 1765771364742,
+      "id": 48
     }
   ]
 }

@@ -30,7 +30,7 @@ node serve.js
 ### 3️⃣ **Akses Aplikasi** (Browser)
 - 🥤 **Pesan Makanan/Minuman** → http://localhost:8000/pesan.html
 - 📋 **Daftar Pesanan (Admin)** → http://localhost:8000/daftar.html
-- 👤 **Pesanan Saya** → http://localhost:8000/pesanan-saya.html
+- 👤 **Pesanan Masuk** → http://localhost:8000/pesanan-masuk.html
 - 🔐 **Admin Login** → http://localhost:8000/admin-login.html
 
 ---
@@ -127,7 +127,7 @@ MENU/
 │   └── vendor/
 ├── pesan.html                # Order page
 ├── daftar.html               # Order list (admin)
-├── pesanan-saya.html         # My orders
+├── pesanan-masuk.html         # My orders
 ├── admin-login.html          # Admin login
 ├── index.html                # Home
 ├── script.js                 # Main app logic
