@@ -40,7 +40,7 @@ class PaymentWebhookHandler {
             }
 
             // Get order from database
-            const orders = await this.db.readOrders();
+            const orders = this.db.getOrders();
             const order = orders.find(o => (o.id || o._id) === orderId);
 
             if (!order) {
@@ -54,7 +54,7 @@ class PaymentWebhookHandler {
             order.paidAt = new Date().toISOString();
 
             // Save updated order
-            await this.db.saveOrders(orders);
+            this.db.saveOrders(orders);
 
             return {
                 success: true,
@@ -73,7 +73,7 @@ class PaymentWebhookHandler {
      */
     async getPaymentHistory(buyerName) {
         try {
-            const orders = await this.db.readOrders();
+            const orders = this.db.getOrders();
 
             const payments = orders
                 .filter(order => {
@@ -111,7 +111,7 @@ class PaymentWebhookHandler {
      */
     async getPaymentStatus(orderId) {
         try {
-            const orders = await this.db.readOrders();
+            const orders = this.db.getOrders();
             const order = orders.find(o => (o.id || o._id) === orderId);
 
             if (!order) {
@@ -138,7 +138,7 @@ class PaymentWebhookHandler {
      */
     async confirmCashPayment(orderId) {
         try {
-            const orders = await this.db.readOrders();
+            const orders = this.db.getOrders();
             const order = orders.find(o => (o.id || o._id) === orderId);
 
             if (!order) {
@@ -151,7 +151,7 @@ class PaymentWebhookHandler {
             order.paidAt = new Date().toISOString();
 
             // Save updated order
-            await this.db.saveOrders(orders);
+            this.db.saveOrders(orders);
 
             return {
                 success: true,
