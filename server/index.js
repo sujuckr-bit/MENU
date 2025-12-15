@@ -50,6 +50,52 @@ async function main() {
     cookie: { secure: process.env.NODE_ENV === 'production' }
   }));
 
+  // Simple health and metrics middleware (Phase 5)
+  const __metrics = {
+    requests: 0,
+    responses: 0,
+    errors: 0,
+    totalResponseTimeMs: 0,
+    lastRequests: []
+  };
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+    __metrics.requests++;
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      __metrics.responses++;
+      __metrics.totalResponseTimeMs += duration;
+      if (res.statusCode >= 500) __metrics.errors++;
+      __metrics.lastRequests.push({
+        path: req.path,
+        method: req.method,
+        status: res.statusCode,
+        duration,
+        time: new Date().toISOString()
+      });
+      if (__metrics.lastRequests.length > 200) __metrics.lastRequests.shift();
+    });
+    next();
+  });
+
+  // Lightweight health endpoint
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', uptime: process.uptime(), timestamp: Date.now() });
+  });
+
+  // Lightweight metrics endpoint (JSON) — for simple scraping/inspection
+  app.get('/metrics', (req, res) => {
+    const avg = __metrics.responses ? (__metrics.totalResponseTimeMs / __metrics.responses) : 0;
+    res.json({
+      requests: __metrics.requests,
+      responses: __metrics.responses,
+      errors: __metrics.errors,
+      avgResponseMs: Math.round(avg),
+      recent: __metrics.lastRequests.slice(-20)
+    });
+  });
+
   // Serve static files from parent directory
   // Intercept asset requests and serve from RAM cache for faster repeated access
   app.get('/assets/*', async (req, res, next) => {

@@ -1,0 +1,7 @@
+# Example Prometheus scrape config (add to your prometheus.yml)
+# This is an example to scrape the app's /metrics endpoint if you deploy Prometheus
+scrape_configs:
+  - job_name: 'menu-app'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['localhost:3000']
