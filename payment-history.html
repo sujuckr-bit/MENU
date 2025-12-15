@@ -217,6 +217,13 @@
             </div>
         </div>
 
+        <!-- Action Bar -->
+        <div style="margin-bottom: 30px; text-align: right;">
+            <button id="exportBtn" class="btn" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); color: white; border: none; border-radius: 8px; font-weight: 600; padding: 10px 24px;">
+                <i class="bi bi-download me-2"></i>Export ke Excel
+            </button>
+        </div>
+
                 <!-- Payment History List -->
                 <div id="paymentList">
                     <div class="empty-state">
@@ -261,160 +268,326 @@
     </footer>
 
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
     <script src="assets/js/api-config.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="assets/js/toast.js"></script>
     <script>
-        // Logout function for sidebar
-        function logout() {
-            if (typeof logoutAdmin === 'function') logoutAdmin();
-            else sessionStorage.removeItem('isAdmin');
-            location.href = 'index.html';
-        }
-
-        // Auto-load payment history if returning from daftar.html after payment confirmation
-        function autoLoadPaymentHistory() {
-            const buyerName = localStorage.getItem('lastBuyerName') || '';
-            if (buyerName) {
-                document.getElementById('buyerNameFilter').value = buyerName;
-                // Auto-trigger load after page loads
-                setTimeout(() => {
-                    loadPaymentHistory();
-                }, 500);
+        // ============ STATE MANAGEMENT ============
+        let allOrders = [];
+        let filteredOrders = [];
+        
+        // Detect API URL and port correctly
+        const API_URL = (() => {
+            if (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) {
+                console.log('📌 Using API_BASE_URL from api-config.js:', API_BASE_URL);
+                return API_BASE_URL;
             }
-        }
+            // Default to localhost:3000 (standard port for this app)
+            const protocol = window.location.protocol;
+            const host = window.location.hostname;
+            const fallback = `${protocol}//${host}:3000`;
+            console.log('📌 Using fallback API_URL:', fallback);
+            return fallback;
+        })();
+        
+        // Extract port for WebSocket
+        const getWebSocketPort = () => {
+            const match = API_URL.match(/:(\d+)/);
+            return match ? match[1] : '3000';
+        };
+        
+        const WS_PORT = getWebSocketPort();
 
-        // Get current buyer name from session/localStorage
-        const buyerName = localStorage.getItem('lastBuyerName') || '';
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if admin
+            const me = await checkAdminStatus();
+            if (!me || !me.isAdmin) {
+                window.location.href = 'daftar.html';
+                return;
+            }
 
-        if (buyerName) {
-            document.getElementById('buyerNameFilter').value = buyerName;
-            loadPaymentHistory();
-        }
+            // Initial load
+            await loadAllCompletedOrders();
 
-        // Also auto-load if page was just loaded after payment
-        window.addEventListener('pageshow', autoLoadPaymentHistory);
+            // Setup event listeners
+            setupEventListeners();
 
-        // Filter Button
-        document.getElementById('filterBtn').addEventListener('click', loadPaymentHistory);
-
-        // Reset Button
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            document.getElementById('buyerNameFilter').value = '';
-            document.getElementById('methodFilter').value = '';
-            document.getElementById('statusFilter').value = '';
-            loadPaymentHistory();
+            // Setup WebSocket for real-time updates
+            setupWebSocket();
         });
 
         /**
-         * Load Payment History
+         * Check if user is admin
          */
-        async function loadPaymentHistory() {
-            const buyerName = document.getElementById('buyerNameFilter').value.trim();
-            const method = document.getElementById('methodFilter').value;
-            const status = document.getElementById('statusFilter').value;
-
-            if (!buyerName) {
-                showEmptyState('Silakan masukkan nama pembeli untuk melihat riwayat pembayaran.');
-                return;
-            }
-
+        async function checkAdminStatus() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/payment-history`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ buyerName, method, status })
-                });
-
-                const data = await response.json();
-
-                if (!data.success || !data.payments || data.payments.length === 0) {
-                    showEmptyState('Belum ada riwayat pembayaran untuk nama ini.');
-                    updateStats([]);
-                    return;
-                }
-
-                renderPaymentHistory(data.payments);
-                updateStats(data.payments);
-
+                const response = await fetch(`${API_URL}/api/me`, { credentials: 'include' });
+                return await response.json();
             } catch (error) {
-                console.error('Error loading payment history:', error);
-                showEmptyState('Gagal memuat riwayat pembayaran. Silakan coba lagi.');
+                console.error('Error checking admin status:', error);
+                return null;
             }
         }
 
         /**
-         * Render Payment History
+         * Setup event listeners
          */
-        function renderPaymentHistory(payments) {
+        function setupEventListeners() {
+            document.getElementById('filterBtn').addEventListener('click', () => {
+                applyFilters();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('buyerNameFilter').value = '';
+                document.getElementById('methodFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                filteredOrders = [...allOrders];
+                renderPaymentHistory(filteredOrders);
+                updateStats(filteredOrders);
+            });
+
+            // Export button
+            const exportBtn = document.querySelector('[id="exportBtn"]');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', exportToExcel);
+            }
+
+            // Real-time filter on input (debounce)
+            let searchTimeout;
+            document.getElementById('buyerNameFilter').addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(applyFilters, 300);
+            });
+
+            document.getElementById('methodFilter').addEventListener('change', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        }
+
+        /**
+         * Setup WebSocket for real-time updates
+         */
+        function setupWebSocket() {
+            try {
+                // Build WebSocket URL with correct port
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.hostname;
+                const wsUrl = `${protocol}//${host}:${WS_PORT}/ws`;
+
+                console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+
+                const ws = new WebSocket(wsUrl);
+
+                ws.addEventListener('open', () => {
+                    console.log('✅ WebSocket connected for real-time updates');
+                });
+
+                ws.addEventListener('message', (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+
+                        if (message.type === 'order_updated' || message.type === 'payment_updated') {
+                            // Reload data when payment is confirmed
+                            console.log('🔄 Payment update detected, reloading...', message);
+                            loadAllCompletedOrders();
+                        }
+                    } catch (error) {
+                        console.error('Error processing WebSocket message:', error);
+                    }
+                });
+
+                ws.addEventListener('close', () => {
+                    console.log('⚠️ WebSocket disconnected');
+                    // Reconnect after 3 seconds
+                    setTimeout(setupWebSocket, 3000);
+                });
+
+                ws.addEventListener('error', (error) => {
+                    console.warn('⚠️ WebSocket error - this is OK if backend WebSocket server is not running');
+                    console.error('WebSocket error details:', error);
+                });
+
+            } catch (error) {
+                console.error('Error setting up WebSocket:', error);
+            }
+        }
+
+        /**
+         * Load all completed orders from server
+         */
+        async function loadAllCompletedOrders() {
+            try {
+                console.log(`📡 Fetching orders from: ${API_URL}/api/orders`);
+                
+                const response = await fetch(`${API_URL}/api/orders`, { credentials: 'include' });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const orders = await response.json();
+                console.log('📥 Raw orders from server (total):', orders.length, orders);
+
+                // Filter only completed orders
+                allOrders = orders.filter(order => order.completed === true);
+                
+                console.log('🔍 Filtering for completed=true...');
+                console.log('   Total orders:', orders.length);
+                console.log('   Completed orders:', allOrders.length);
+                
+                if (allOrders.length === 0) {
+                    console.warn('⚠️ No completed orders found. Details:');
+                    orders.slice(0, 3).forEach((o, idx) => {
+                        console.log(`   Order ${idx}:`, {
+                            id: o.id,
+                            buyerName: o.buyerName,
+                            completed: o.completed,
+                            paymentStatus: o.paymentStatus,
+                            total: o.total
+                        });
+                    });
+                }
+
+                // Sort by latest first
+                allOrders.sort((a, b) => {
+                    const timeA = new Date(a.paidAt || a.createdAt).getTime();
+                    const timeB = new Date(b.paidAt || b.createdAt).getTime();
+                    return timeB - timeA;
+                });
+
+                filteredOrders = [...allOrders];
+                renderPaymentHistory(filteredOrders);
+                updateStats(filteredOrders);
+
+                console.log(`✅ Loaded ${allOrders.length} completed orders`);
+
+            } catch (error) {
+                console.error('❌ Error loading orders:', error);
+                showEmptyState('Gagal memuat data transaksi. Pastikan Anda login sebagai admin.');
+            }
+        }
+
+        /**
+         * Apply filters to orders
+         */
+        function applyFilters() {
+            const nameFilter = document.getElementById('buyerNameFilter').value.trim().toLowerCase();
+            const methodFilter = document.getElementById('methodFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+
+            filteredOrders = allOrders.filter(order => {
+                // Filter by buyer name
+                if (nameFilter && !order.buyerName.toLowerCase().includes(nameFilter)) {
+                    return false;
+                }
+
+                // Filter by payment method
+                if (methodFilter) {
+                    const method = (order.paymentMethod || 'tunai').toLowerCase();
+                    if (method !== methodFilter && method !== methodFilter.replace('tunai', 'cash')) {
+                        return false;
+                    }
+                }
+
+                // Filter by status
+                if (statusFilter && statusFilter !== 'completed') {
+                    const status = (order.paymentStatus || 'completed').toLowerCase();
+                    if (status !== statusFilter) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            renderPaymentHistory(filteredOrders);
+            updateStats(filteredOrders);
+        }
+
+        /**
+         * Render payment history with table layout
+         */
+        function renderPaymentHistory(orders) {
             const list = document.getElementById('paymentList');
-            
-            if (!payments || payments.length === 0) {
-                showEmptyState('Belum ada riwayat pembayaran.');
+
+            if (!orders || orders.length === 0) {
+                showEmptyState('Tidak ada transaksi yang sesuai dengan filter.');
                 return;
             }
-            
-            const html = payments.map(payment => `
+
+            const html = orders.map((order, idx) => `
                 <div class="payment-card mb-4">
                     <div class="card">
                         <div class="card-body p-4">
                             <div class="row align-items-center">
-                                <!-- Left: Order & Method -->
-                                <div class="col-md-6">
-                                    <h6 class="fw-bold mb-2" style="color: #1a3a52;">
-                                        <i class="bi bi-receipt me-2" style="color: #00a856;"></i>
-                                        Pesanan #${payment.orderId || 'N/A'}
-                                    </h6>
-                                    <div class="mb-3">
-                                        <span class="payment-method badge" style="background: #00a856; font-size: 11px; padding: 6px 10px; border-radius: 20px;">
-                                            <i class="bi bi-wallet2"></i>
-                                            ${formatPaymentMethod(payment.paymentMethod || 'tunai')}
-                                        </span>
-                                    </div>
-                                    ${payment.transactionId ? `
-                                    <p class="transaction-id mb-0" style="font-size: 11px; color: #666;">
-                                        <strong>ID Transaksi:</strong><br>
-                                        <span style="font-family: monospace; color: #333;">${payment.transactionId}</span>
-                                    </p>
-                                    ` : ''}
-                                </div>
+                                <!-- Order Info -->
+                                <div class="col-md-7">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p style="font-size: 11px; color: #666; margin: 0; text-transform: uppercase;">Nama Pembeli</p>
+                                            <h6 class="fw-bold" style="color: #1a3a52; margin: 5px 0 15px 0;">
+                                                <i class="bi bi-person me-2" style="color: #00a856;"></i>${order.buyerName || 'N/A'}
+                                            </h6>
 
-                                <!-- Right: Amount & Status -->
-                                <div class="col-md-6">
-                                    <div class="text-md-end">
-                                        <div class="mb-3">
-                                            <p style="color: #666; font-size: 12px; margin-bottom: 5px;">Jumlah</p>
-                                            <h5 class="fw-bold" style="color: #00a856; margin: 0;">
-                                                Rp ${formatCurrency(payment.amount || 0)}
-                                            </h5>
+                                            <p style="font-size: 11px; color: #666; margin: 0; text-transform: uppercase;">Meja</p>
+                                            <p class="fw-bold" style="color: #1a3a52; margin: 5px 0 0 0;">
+                                                <i class="bi bi-border-all me-2" style="color: #00a856;"></i>${order.tableNumber || '-'}
+                                            </p>
                                         </div>
-                                        <div>
-                                            <span class="status-badge badge" style="background: ${getStatusColor(payment.status || 'pending')}; font-size: 11px; padding: 6px 10px; border-radius: 20px;">
-                                                ${formatStatus(payment.status || 'pending')}
+                                        <div class="col-6">
+                                            <p style="font-size: 11px; color: #666; margin: 0; text-transform: uppercase;">Item Pesanan</p>
+                                            <p class="fw-bold" style="color: #1a3a52; margin: 5px 0 15px 0; font-size: 13px;">
+                                                ${order.items && order.items.length > 0 ? order.items.map(item => `${item.name} (${item.quantity || 1})`).join(', ') : 'N/A'}
+                                            </p>
+
+                                            <p style="font-size: 11px; color: #666; margin: 0; text-transform: uppercase;">Metode Bayar</p>
+                                            <span class="badge me-2" style="background: ${order.paymentMethod === 'qris' ? '#0066cc' : '#666'}; font-size: 11px; padding: 6px 10px;">
+                                                <i class="bi ${order.paymentMethod === 'qris' ? 'bi-qr-code' : 'bi-cash-coin'} me-1"></i>
+                                                ${formatPaymentMethod(order.paymentMethod || 'tunai')}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Amount & Status -->
+                                <div class="col-md-5">
+                                    <div class="text-md-end">
+                                        <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; margin-bottom: 5px;">Total Pembayaran</p>
+                                        <h4 class="fw-bold" style="color: #00a856; margin: 0 0 15px 0;">
+                                            Rp ${formatCurrency(order.total || 0)}
+                                        </h4>
+
+                                        <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; margin-bottom: 5px;">Status</p>
+                                        <span class="badge" style="background: #28a745; font-size: 11px; padding: 8px 12px; border-radius: 20px; display: inline-block;">
+                                            <i class="bi bi-check-circle me-1"></i>Selesai
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Date Info -->
+                            <!-- Divider -->
                             <hr style="margin: 15px 0; border-color: #f0f0f0;">
+
+                            <!-- Footer Info -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;">
+                                <div class="col-md-4">
+                                    <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; margin-bottom: 3px;">
                                         <i class="bi bi-calendar-event me-1"></i>Tanggal Pesanan
                                     </p>
-                                    <p class="fw-bold" style="margin: 0;">${formatDate(payment.createdAt)}</p>
+                                    <p class="fw-bold" style="margin: 0; font-size: 13px;">${formatDate(order.createdAt)}</p>
                                 </div>
-                                <div class="col-md-6">
-                                    ${payment.paidAt ? `
-                                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;">
+                                <div class="col-md-4">
+                                    <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; margin-bottom: 3px;">
                                         <i class="bi bi-check-circle me-1" style="color: #28a745;"></i>Tanggal Pembayaran
                                     </p>
-                                    <p class="fw-bold" style="margin: 0;">${formatDate(payment.paidAt)}</p>
-                                    ` : `
-                                    <p style="color: #666; font-size: 12px; margin-bottom: 5px;">Status Pembayaran</p>
-                                    <p class="fw-bold" style="margin: 0; color: #ffc107;">Belum Dibayar</p>
-                                    `}
+                                    <p class="fw-bold" style="margin: 0; font-size: 13px;">${formatDate(order.paidAt || order.createdAt)}</p>
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <p style="color: #666; font-size: 11px; margin: 0; text-transform: uppercase; margin-bottom: 3px;">
+                                        <i class="bi bi-receipt me-1"></i>ID Pesanan
+                                    </p>
+                                    <p class="fw-bold" style="margin: 0; font-size: 13px; font-family: monospace; color: #0066cc;">#${order.id || order._id || (idx + 1)}</p>
                                 </div>
                             </div>
                         </div>
@@ -426,74 +599,166 @@
         }
 
         /**
-         * Show Empty State
+         * Show empty state
          */
-        function showEmptyState(message = 'Belum ada riwayat pembayaran.') {
+        function showEmptyState(message = 'Belum ada transaksi yang selesai.') {
             const list = document.getElementById('paymentList');
             list.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
                     <h5>${message}</h5>
-                    <a href="pesan.html" class="btn btn-primary mt-3" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 8px;">Buat Pesanan</a>
+                    <p style="color: #999; margin: 10px 0;">Transaksi akan muncul setelah admin mengkonfirmasi pembayaran di halaman Daftar Pesanan</p>
+                    <a href="daftar.html" class="btn btn-primary mt-3" style="background: linear-gradient(135deg, #00a856 0%, #007a42 100%); border: none; border-radius: 8px;">
+                        <i class="bi bi-list-check me-2"></i>Kelola Pesanan
+                    </a>
                 </div>
             `;
         }
 
         /**
-         * Update Statistics
+         * Update statistics
          */
-        function updateStats(payments) {
-            const total = payments.length;
-            const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-            const completed = payments.filter(p => p.status === 'completed').length;
-            const pending = payments.filter(p => p.status === 'pending').length;
+        function updateStats(orders) {
+            const totalTransactions = orders.length;
+            const totalAmount = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+            const qrisTransactions = orders.filter(o => (o.paymentMethod || 'tunai').toLowerCase() === 'qris').length;
+            const tunaiTransactions = orders.filter(o => (o.paymentMethod || 'tunai').toLowerCase() !== 'qris').length;
+            const qrisAmount = orders
+                .filter(o => (o.paymentMethod || 'tunai').toLowerCase() === 'qris')
+                .reduce((sum, o) => sum + (o.total || 0), 0);
+            const tunaiAmount = orders
+                .filter(o => (o.paymentMethod || 'tunai').toLowerCase() !== 'qris')
+                .reduce((sum, o) => sum + (o.total || 0), 0);
 
-            document.getElementById('totalTransactions').textContent = total;
+            document.getElementById('totalTransactions').textContent = totalTransactions;
             document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(totalAmount)}`;
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('completedCount').textContent = totalTransactions;
+            document.getElementById('pendingCount').textContent = '0';
+
+            // Update or create additional stats if they exist
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid && statsGrid.children.length < 6) {
+                // Add QRIS and Tunai stats
+                const existingStats = statsGrid.innerHTML;
+                if (!existingStats.includes('QRIS')) {
+                    statsGrid.innerHTML = existingStats + `
+                        <div class="stat-card">
+                            <div class="stat-card-label">QRIS</div>
+                            <div class="stat-card-value" style="color: #0066cc; font-size: 18px;">Rp ${formatCurrency(qrisAmount)}</div>
+                            <small style="color: #999;">${qrisTransactions} transaksi</small>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Tunai</div>
+                            <div class="stat-card-value" style="color: #ff9800; font-size: 18px;">Rp ${formatCurrency(tunaiAmount)}</div>
+                            <small style="color: #999;">${tunaiTransactions} transaksi</small>
+                        </div>
+                    `;
+                }
+            }
         }
 
         /**
-         * Format Payment Method
+         * Export to Excel
+         */
+        async function exportToExcel() {
+            if (filteredOrders.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('Tidak ada data untuk diexport', 'warning');
+                } else {
+                    alert('Tidak ada data untuk diexport');
+                }
+                return;
+            }
+
+            try {
+                // Prepare data
+                const exportData = filteredOrders.map((order, idx) => ({
+                    'No.': idx + 1,
+                    'ID Pesanan': order.id || order._id || '',
+                    'Nama Pembeli': order.buyerName || '-',
+                    'Meja': order.tableNumber || '-',
+                    'Item': order.items ? order.items.map(item => `${item.name} (${item.quantity || 1})`).join(', ') : '-',
+                    'Total (Rp)': order.total || 0,
+                    'Metode Pembayaran': formatPaymentMethod(order.paymentMethod || 'tunai'),
+                    'Tanggal Pesanan': formatDate(order.createdAt),
+                    'Tanggal Pembayaran': formatDate(order.paidAt || order.createdAt),
+                    'Status': 'Selesai'
+                }));
+
+                // Add summary row
+                const totalAmount = filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+                exportData.push({
+                    'No.': '',
+                    'ID Pesanan': '',
+                    'Nama Pembeli': '',
+                    'Meja': '',
+                    'Item': 'TOTAL',
+                    'Total (Rp)': totalAmount,
+                    'Metode Pembayaran': '',
+                    'Tanggal Pesanan': '',
+                    'Tanggal Pembayaran': '',
+                    'Status': ''
+                });
+
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(exportData);
+
+                // Format columns
+                const colWidths = [
+                    { wch: 5 },   // No
+                    { wch: 15 },  // ID Pesanan
+                    { wch: 20 },  // Nama
+                    { wch: 10 },  // Meja
+                    { wch: 30 },  // Item
+                    { wch: 15 },  // Total
+                    { wch: 18 },  // Metode
+                    { wch: 20 },  // Tanggal Pesanan
+                    { wch: 20 },  // Tanggal Pembayaran
+                    { wch: 12 }   // Status
+                ];
+                ws['!cols'] = colWidths;
+
+                XLSX.utils.book_append_sheet(wb, ws, 'Riwayat Pembayaran');
+
+                // Generate filename with date
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                const filename = `Riwayat-Pembayaran-${dateStr}.xlsx`;
+
+                // Download
+                XLSX.writeFile(wb, filename);
+
+                if (typeof showToast === 'function') {
+                    showToast(`✅ Data berhasil diexport: ${filename}`, 'success');
+                } else {
+                    alert('Data berhasil diexport: ' + filename);
+                }
+
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                if (typeof showToast === 'function') {
+                    showToast('Gagal mengexport data', 'error');
+                } else {
+                    alert('Gagal mengexport data');
+                }
+            }
+        }
+
+        /**
+         * Format payment method
          */
         function formatPaymentMethod(method) {
             const map = {
-                'qris': 'QRIS',
-                'tunai': 'Tunai',
-                'cash': 'Tunai'
+                'qris': '💳 QRIS',
+                'tunai': '💵 Tunai',
+                'cash': '💵 Tunai'
             };
-            return map[(method || '').toLowerCase()] || (method || 'N/A');
+            return map[(method || '').toLowerCase()] || (method || 'Tunai');
         }
 
         /**
-         * Format Status
-         */
-        function formatStatus(status) {
-            const map = {
-                'completed': 'Selesai',
-                'pending': 'Pending',
-                'failed': 'Gagal',
-                'refunded': 'Dikembalikan'
-            };
-            return map[status?.toLowerCase()] || (status || 'Pending');
-        }
-
-        /**
-         * Get Status Color
-         */
-        function getStatusColor(status) {
-            const colors = {
-                'completed': '#28a745',
-                'pending': '#ffc107',
-                'failed': '#dc3545',
-                'refunded': '#6c757d'
-            };
-            return colors[status?.toLowerCase()] || '#6c757d';
-        }
-
-        /**
-         * Format Currency
+         * Format currency
          */
         function formatCurrency(amount) {
             return new Intl.NumberFormat('id-ID', {
@@ -503,14 +768,14 @@
         }
 
         /**
-         * Format Date
+         * Format date
          */
         function formatDate(dateStr) {
             if (!dateStr) return 'N/A';
             try {
                 return new Date(dateStr).toLocaleDateString('id-ID', {
                     year: 'numeric',
-                    month: 'long',
+                    month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
@@ -518,6 +783,20 @@
             } catch (e) {
                 return 'N/A';
             }
+        }
+
+        /**
+         * Logout function
+         */
+        function logout() {
+            fetch(`${API_URL}/api/logout`, { method: 'POST', credentials: 'include' })
+                .then(() => {
+                    location.href = 'index.html';
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    location.href = 'index.html';
+                });
         }
     </script>
 </body>

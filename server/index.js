@@ -362,11 +362,9 @@ async function main() {
 
   // ======== PAYMENT INTEGRATION ========
   const PaymentGateway = require('./payment-gateway');
-  const PaymentWebhookHandler = require('./payment-webhook');
   const InvoiceGenerator = require('./invoice-generator');
 
   const paymentGateway = new PaymentGateway();
-  const webhookHandler = new PaymentWebhookHandler(db);
   const invoiceGenerator = new InvoiceGenerator();
 
   // Get available payment methods
@@ -413,83 +411,40 @@ async function main() {
     }
   });
 
-  // Get payment status
-  app.get('/api/payment/status/:orderId', async (req, res) => {
+  // Note: webhook endpoints removed (webhook feature disabled)
+
+  // Search payments (replacement for removed webhook-based history)
+  app.post('/api/payments/search', async (req, res) => {
     try {
-      const { orderId } = req.params;
-      const result = await webhookHandler.getPaymentStatus(orderId);
-      res.json(result);
+      const { buyerName, method, status } = req.body || {};
+      if (!buyerName) return res.status(400).json({ success: false, error: 'Buyer name required' });
+
+      const orders = db.getOrders();
+
+      const payments = (orders || [])
+        .filter(order => {
+          if (!order) return false;
+          if ((order.buyerName || '') !== buyerName) return false;
+          if (method && order.paymentMethod !== method) return false;
+          if (status) {
+            const s = order.paymentStatus || (order.completed ? 'completed' : 'pending');
+            if (s !== status) return false;
+          }
+          return true;
+        })
+        .map(order => ({
+          orderId: order.id || order._id,
+          paymentMethod: order.paymentMethod || (order.completed ? 'tunai' : null),
+          amount: (order.items || []).reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0),
+          status: order.paymentStatus || (order.completed ? 'completed' : 'pending'),
+          transactionId: order.transactionId || null,
+          createdAt: order.createdAt || new Date().toISOString(),
+          paidAt: order.paidAt || null
+        }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      res.json({ success: true, count: payments.length, payments });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // Get payment history
-  app.post('/api/payment-history', async (req, res) => {
-    try {
-      const { buyerName, method, status } = req.body;
-
-      if (!buyerName) {
-        return res.status(400).json({ success: false, error: 'Buyer name required' });
-      }
-
-      const result = await webhookHandler.getPaymentHistory(buyerName);
-      
-      if (result.success && result.payments) {
-        // Apply additional filters
-        let filtered = result.payments;
-        if (method) {
-          filtered = filtered.filter(p => p.paymentMethod === method);
-        }
-        if (status) {
-          filtered = filtered.filter(p => p.status === status);
-        }
-        result.payments = filtered;
-        result.count = filtered.length;
-      }
-
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // Webhook handlers for payment providers
-  app.post('/api/payment-webhook/qris', async (req, res) => {
-    try {
-      const { signature } = req.headers;
-      if (signature && !webhookHandler.verifySignature(req.body, signature)) {
-        return res.status(401).json({ success: false, error: 'Invalid signature' });
-      }
-
-      const result = await webhookHandler.handleQRISWebhook(req.body);
-      res.json(result);
-
-      if (result.success) {
-        broadcastUpdate('payment_updated', result);
-      }
-    } catch (error) {
-      console.error('QRIS Webhook error:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // Confirm cash payment (Tunai)
-  app.post('/api/payment-webhook/tunai', async (req, res) => {
-    try {
-      const { orderId } = req.body;
-      if (!orderId) {
-        return res.status(400).json({ success: false, error: 'Order ID required' });
-      }
-
-      const result = await webhookHandler.confirmCashPayment(orderId);
-      res.json(result);
-
-      if (result.success) {
-        broadcastUpdate('payment_updated', result);
-      }
-    } catch (error) {
-      console.error('Cash Payment Confirmation error:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   });

@@ -5,6 +5,26 @@
     }
   },
   "menus": {},
-  "orders": [],
+  "orders": [
+    {
+      "buyerName": "arnol",
+      "tableNumber": "1",
+      "items": [
+        {
+          "category": "Minum",
+          "itemName": "Kopi Gula Aren (Hot/Ice)",
+          "price": 28000,
+          "quantity": 1,
+          "subtotal": 28000
+        }
+      ],
+      "total": 28000,
+      "paymentMethod": "cash",
+      "receiptNumber": "RCP-251215-0453",
+      "completed": false,
+      "createdAt": 1765787452651,
+      "id": 1
+    }
+  ],
   "settings": {}
 }

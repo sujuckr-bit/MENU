@@ -30,24 +30,22 @@ Test the complete flow of payment history integration between daftar.html and pa
 
 **When order marked "Selesai" in daftar.html:**
 ```
-daftar.html completeOrder(id)
-  ↓ saves order as completed
-  ↓ saves localStorage.lastBuyerName = buyerName
-  ↓ calls POST /api/payment-webhook/tunai with orderId
-  ↓ backend updates order: paymentStatus='completed', paymentMethod='tunai', paidAt=now
-  ↓ redirects to payment-history.html
-  ↓ page loads and reads localStorage.lastBuyerName
-  ↓ calls POST /api/payment-history with buyerName
-  ↓ renders payment cards with formatters
-  ↓ user sees payment in list
+   daftar.html completeOrder(id)
+   ↓ saves order as completed
+   ↓ saves localStorage.lastBuyerName = buyerName
+   ↓ calls POST /api/orders/:id/complete with orderId
+   ↓ backend updates order: paymentStatus='completed', paymentMethod='tunai', paidAt=now
+   ↓ redirects to payment-history.html
+   ↓ page loads and reads localStorage.lastBuyerName
+   ↓ renders payment cards with formatters (reads updated orders)
+   ↓ user sees payment in list
 ```
 
 ### Browser Console Check:
 - Should have NO ReferenceErrors
 - Should have NO API connection errors
 - Check Network tab: 
-  - POST /api/payment-webhook/tunai - should return 200
-  - POST /api/payment-history - should return 200 with payment data
+   - POST /api/orders/:id/complete - should return 200
 
 ### Fixes Applied:
 1. ✅ Added helper functions to payment-history.html:
@@ -65,8 +63,8 @@ daftar.html completeOrder(id)
 3. ✅ Ensured API_BASE_URL is globally accessible
 
 4. ✅ Backend routes verified:
-   - POST /api/payment-webhook/tunai ✓
-   - POST /api/payment-history ✓
+   - POST /api/orders/:id/complete ✓
+   - (legacy payment-history webhook removed; frontend reads updated orders)
 
 ### Next Steps:
 - Execute test flow above
