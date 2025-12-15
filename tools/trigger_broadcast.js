@@ -9,7 +9,13 @@ function req(options, data){
 }
 (async()=>{
   try{
-    const login = { username: 'admin', password: 'admin123' };
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      console.error('ERROR: TEST_ADMIN_PASSWORD or ADMIN_PASSWORD environment variable not set');
+      console.error('Usage: TEST_ADMIN_PASSWORD=your_password node trigger_broadcast.js');
+      process.exit(1);
+    }
+    const login = { username: 'admin', password: adminPassword };
     const loginResp = await req({ hostname: 'localhost', port: 8000, path: '/api/login', method: 'POST', headers: {'Content-Type':'application/json'} }, login);
     console.log('LOGIN', loginResp.status, loginResp.body);
     const setCookie = loginResp.headers['set-cookie'];

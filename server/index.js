@@ -90,13 +90,17 @@ async function main() {
   // Login
   app.post('/api/login', async (req, res) => {
     const { username = 'admin', password } = req.body || {};
+    console.log('[LOGIN] Received request for username:', username, 'password exists:', !!password);
     if (!password) return res.status(400).json({ error: 'Missing password' });
     const u = db.getUser(username);
+    console.log('[LOGIN] User found:', !!u, 'Has hash:', !!u?.passwordHash);
     if (!u || !u.passwordHash) return res.status(401).json({ error: 'Unauthorized' });
     const ok = await bcrypt.compare(password, u.passwordHash);
+    console.log('[LOGIN] Password match:', ok);
     if (!ok) return res.status(401).json({ error: 'Unauthorized' });
     req.session.isAdmin = true;
     req.session.username = username;
+    console.log('[LOGIN] Success! Session set.');
     res.json({ ok: true });
   });
 
@@ -518,7 +522,7 @@ async function main() {
     }
   });
 
-  const port = process.env.PORT || 8000;
+  const port = process.env.PORT || 3000;
   const server = http.createServer(app);
 
   // Setup WebSocket server

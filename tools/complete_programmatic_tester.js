@@ -10,7 +10,13 @@ function req(options, data){
 (async()=>{
   try{
     // login
-    const loginResp = await req({hostname:'localhost',port:8000,path:'/api/login',method:'POST',headers:{'Content-Type':'application/json'}}, {username:'admin',password:'admin123'});
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      console.error('ERROR: TEST_ADMIN_PASSWORD or ADMIN_PASSWORD environment variable not set');
+      console.error('Usage: TEST_ADMIN_PASSWORD=your_password node complete_programmatic_tester.js');
+      process.exit(1);
+    }
+    const loginResp = await req({hostname:'localhost',port:8000,path:'/api/login',method:'POST',headers:{'Content-Type':'application/json'}}, {username:'admin',password:adminPassword});
     if(loginResp.status!==200){ console.error('LOGIN_FAILED',loginResp.status,loginResp.body); process.exit(1); }
     const cookie = (loginResp.headers['set-cookie']||[]).map(c=>c.split(';')[0]).join('; ');
     // list orders

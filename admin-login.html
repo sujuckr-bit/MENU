@@ -53,12 +53,16 @@
                         <!-- Info Box -->
                         <div class="alert alert-info mb-4" style="border-radius: 8px; border-left: 4px solid #17a2b8;">
                             <p class="mb-0" style="font-size: 0.9rem;">
-                                <strong>Password default:</strong> <code>admin123</code><br>
-                                <small class="text-muted">Ubah password di panel admin setelah login</small>
+                                <strong>Catatan:</strong> Gunakan password admin yang telah diatur saat setup awal.
+                                <small class="text-muted">Hubungi administrator jika lupa password</small>
                             </p>
                         </div>
 
                         <form id="adminLoginForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="color: #1a3a52;">Username</label>
+                                <input id="adminUsername" type="text" class="form-control" placeholder="Masukkan username admin" required style="border-radius: 8px; padding: 0.75rem 1rem;">
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label fw-bold" style="color: #1a3a52;">Password</label>
                                 <div class="input-group">
@@ -85,12 +89,12 @@
 
                 <!-- Info Section -->
                 <div class="mt-4 p-3 bg-light rounded" style="border-left: 4px solid #ffc107;">
-                    <h6 class="fw-bold mb-2" style="color: #1a3a52;"><i class="bi bi-lightbulb me-2" style="color: #00a856;"></i>Tips Login Admin</h6>
+                    <h6 class="fw-bold mb-2" style="color: #1a3a52;"><i class="bi bi-lightbulb me-2" style="color: #00a856;"></i>Tips Keamanan Login</h6>
                     <ul class="small text-muted mb-0" style="font-size: 0.85rem;">
-                        <li>Default password adalah <strong>admin123</strong></li>
-                        <li>Ubah password di admin panel setelah login</li>
-                        <li>Password tersimpan di browser (localStorage)</li>
-                        <li>Logout otomatis saat tutup browser</li>
+                        <li>Gunakan password yang kuat dan unik</li>
+                        <li>Jangan bagikan password dengan orang lain</li>
+                        <li>Logout setelah selesai menggunakan admin panel</li>
+                        <li>Jika lupa password, hubungi administrator</li>
                     </ul>
                 </div>
             </div>
@@ -120,8 +124,10 @@
         const form = document.getElementById('adminLoginForm');
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            const input = document.getElementById('adminPassword');
-            const pwd = input ? input.value : '';
+            const usernameInput = document.getElementById('adminUsername');
+            const passwordInput = document.getElementById('adminPassword');
+            const username = usernameInput ? usernameInput.value : '';
+            const pwd = passwordInput ? passwordInput.value : '';
             const btn = form.querySelector('button[type="submit"]');
             const originalText = btn.textContent;
             
@@ -130,16 +136,16 @@
                 btn.disabled = true;
                 btn.textContent = '⏳ Memproses...';
                 
-                const ok = await loginAdmin(pwd);
+                const ok = await loginAdmin(username, pwd);
                 if (ok) {
                     showToast('✅ Login admin berhasil!', 'success');
                     setTimeout(() => {
                         window.location.href = 'daftar.html';
                     }, 500);
                 } else {
-                    showToast('❌ Password salah. Gunakan password default: admin123', 'error');
-                    input.value = '';
-                    input.focus();
+                    showToast('❌ Login gagal. Username atau password salah.', 'error');
+                    passwordInput.value = '';
+                    passwordInput.focus();
                 }
             } catch (err) {
                 console.error('Login error:', err);

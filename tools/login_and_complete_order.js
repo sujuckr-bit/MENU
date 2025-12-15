@@ -28,7 +28,13 @@ function req(options, data) {
     }
 
     // 2) login as admin
-    const loginData = { username: 'admin', password: 'admin123' };
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      console.error('ERROR: TEST_ADMIN_PASSWORD or ADMIN_PASSWORD environment variable not set');
+      console.error('Usage: TEST_ADMIN_PASSWORD=your_password node login_and_complete_order.js');
+      process.exit(1);
+    }
+    const loginData = { username: 'admin', password: adminPassword };
     const loginOpts = { hostname: 'localhost', port: 3000, path: '/api/login', method: 'POST', headers: { 'Content-Type': 'application/json' } };
     const loginResp = await req(loginOpts, loginData);
     console.log('LOGIN_RESP', loginResp.status, loginResp.body);

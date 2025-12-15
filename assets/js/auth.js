@@ -21,11 +21,11 @@ function isAdmin() {
     return sessionStorage.getItem('isAdmin') === '1';
 }
 
-async function loginWithAPI(password) {
+async function loginWithAPI(username, password) {
     try {
         const resp = await fetch(AUTH_API_BASE + '/login', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ password })
+            credentials: 'include', body: JSON.stringify({ username, password })
         });
         if (!resp.ok) return false;
         // mark client session
@@ -58,21 +58,10 @@ async function changeAdminPasswordViaAPI(newPassword) {
 }
 
 // Public helpers used by existing pages
-async function loginAdmin(password) {
-    if (!password) return false;
-    const ok = await loginWithAPI(password);
-    if (ok) return true;
-    
-    // Fallback: client-side validation dengan password hardcoded
-    // Gunakan ini jika API tidak dapat diakses (offline atau server down)
-    const FALLBACK_PASSWORD = 'admin123';
-    if (password === FALLBACK_PASSWORD) {
-        sessionStorage.setItem('isAdmin', '1');
-        console.log('Login berhasil (mode offline/fallback)');
-        return true;
-    }
-    
-    return false;
+async function loginAdmin(username, password) {
+    if (!username || !password) return false;
+    const ok = await loginWithAPI(username, password);
+    return ok;  // Only server-side authentication allowed; no client-side fallback
 }
 
 function setAdminPassword(newPassword) {
@@ -88,15 +77,17 @@ function logoutAdmin() {
 }
 
 // Helper to attach to a login form (supports async login)
-function handleAdminLoginForm(formId, inputId, onSuccessUrl) {
+function handleAdminLoginForm(formId, usernameInputId, passwordInputId, onSuccessUrl) {
     const form = document.getElementById(formId);
     if (!form) return;
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const input = document.getElementById(inputId);
-        const pwd = input ? input.value : '';
+        const usernameInput = document.getElementById(usernameInputId);
+        const passwordInput = document.getElementById(passwordInputId);
+        const username = usernameInput ? usernameInput.value : '';
+        const pwd = passwordInput ? passwordInput.value : '';
         try {
-            const ok = await loginAdmin(pwd);
+            const ok = await loginAdmin(username, pwd);
             if (ok) {
                 if (onSuccessUrl) window.location.href = onSuccessUrl;
                 else showToast('Login admin berhasil', 'success');
